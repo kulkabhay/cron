@@ -1,0 +1,33 @@
+[
+  {
+    "minute":"59, 15, 30",
+    "hour":"*, 0,20, 21",
+    "dayOfMonth":"1-14, 21, 31",
+    "dayOfWeek":"1,4, 6",
+    "month":"1, 11",
+    "year":"2018",
+    "startTime":1515796347000,
+    "endTime":1516689000000,
+    "interval":10
+  },
+  {
+    "minute":"59, 15, 1,14",
+    "hour":"*, 0,20, 21",
+    "dayOfMonth":"1-14, 21, 31",
+    "dayOfWeek":"1,4, 6",
+    "month":"1, 11",
+    "year":"2018",
+    "startTime":1515796347000,
+    "endTime":1547691486000,
+    "interval":0
+  },
+  {
+    "startTime":1515796347000,
+    "endTime":1547691486000,
+    "interval":0
+  },
+  {
+    "startTime":1515796347000,
+    "endTime":1547691486000
+  }
+]

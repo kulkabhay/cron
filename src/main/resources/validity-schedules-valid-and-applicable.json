@@ -1,0 +1,13 @@
+[
+  {
+    "minute":"0, 10, 20, 30, 40, 50",
+    "hour":"*",
+    "dayOfMonth":"*",
+    "dayOfWeek":"5, 7",
+    "month":"*",
+    "year":"2018",
+    "startTime":1515796347000,
+    "endTime":1516689000000,
+    "interval":9
+  }
+]
