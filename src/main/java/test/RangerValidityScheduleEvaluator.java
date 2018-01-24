@@ -54,6 +54,7 @@ public class RangerValidityScheduleEvaluator {
 
                     Calendar endOfInterval = (Calendar) startOfInterval.clone();
                     endOfInterval.add(Calendar.MINUTE, intervalInMinutes);
+                    endOfInterval.getTime();    // for recomputation
                     System.out.println("End-of-Interval:[" + endOfInterval.getTime() +"]");
                     ret = endOfInterval.after(now);
                 }
@@ -263,7 +264,7 @@ public class RangerValidityScheduleEvaluator {
         }
         cal.set(Calendar.MONTH, newMonth);
         cal.set(Calendar.YEAR, newYear);
-        cal.getTime(); // For evaluation
+        cal.getTime(); // For recomputation
 
         return cal.getActualMaximum(Calendar.DAY_OF_MONTH);
     }
@@ -304,7 +305,7 @@ public class RangerValidityScheduleEvaluator {
         ret.set(Calendar.YEAR, year);
         ret.set(Calendar.MONTH, month);
 
-        ret.getTime();
+        ret.getTime(); // for recomputation
         System.out.println("Filled-out-Calendar:[" + ret.getTime() + "]");
 
         return ret;

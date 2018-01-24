@@ -189,9 +189,9 @@ public class RangerValidityScheduleValidator {
         String noWhiteSpace = StringUtils.deleteWhitespace(validitySchedule.getFieldValue(field));
         String[] specs = StringUtils.split(noWhiteSpace, ",");
         class Range {
-            int lower;
-            int upper;
-            Range(int lower, int upper) {
+            private int lower;
+            private int upper;
+            private Range(int lower, int upper) {
                 this.lower = lower;
                 this.upper = upper;
             }
@@ -209,7 +209,6 @@ public class RangerValidityScheduleValidator {
         }
 
         List<Range> rangeOfValues = new ArrayList<>();
-        int numOfRanges = 0;
 
         List<Integer> values = new ArrayList<>();
 
@@ -285,7 +284,7 @@ public class RangerValidityScheduleValidator {
         }
         //if (ret) {
             if (CollectionUtils.isNotEmpty(rangeOfValues)) {
-                Collections.sort(rangeOfValues, new RangeComparator());
+                rangeOfValues.sort( new RangeComparator());
             }
             for (int i = 0; i < rangeOfValues.size(); i++) {
                 Range range = rangeOfValues.get(i);

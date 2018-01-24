@@ -10,13 +10,6 @@ public class ScheduledTimeRangeMatcher implements ScheduledTimeMatcher {
     }
     @Override
     public boolean isMatch(int currentTime) {
-
-        if (currentTime == lowerBound || currentTime == upperBound) {
-            return true;
-        }
-        if (currentTime > lowerBound && currentTime < upperBound) {
-            return true;
-        }
-        return false;
+        return currentTime == lowerBound || currentTime == upperBound || (currentTime > lowerBound && currentTime < upperBound);
     }
 }

@@ -141,7 +141,7 @@ public class RangerValiditySchedule {
     }
 
     public String toString() {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append("RangerValiditySchedule={");
         sb.append(" minute=").append(minute);
         sb.append(", hour=").append(hour);
@@ -183,11 +183,11 @@ public class RangerValiditySchedule {
         int getMinutes() { return minutes; }
 
         public String toString() {
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
             sb.append("RangerValidityInterval={");
             sb.append("days=").append(days);
             sb.append(", hours=").append(hours);
-            sb.append(", minutes=").append(minutes);;
+            sb.append(", minutes=").append(minutes);
             sb.append(" }");
             return sb.toString();
         }

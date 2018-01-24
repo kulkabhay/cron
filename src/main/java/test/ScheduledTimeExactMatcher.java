@@ -8,9 +8,6 @@ public class ScheduledTimeExactMatcher implements ScheduledTimeMatcher {
     }
     @Override
     public boolean isMatch(int currentTime) {
-        if (currentTime == scheduledTime) {
-            return true;
-        }
-        return false;
+        return currentTime == scheduledTime;
     }
 }
