@@ -25,7 +25,7 @@ public class RangerValidityScheduleEvaluator {
     RangerValidityScheduleEvaluator(RangerValiditySchedule entry) {
         startTimeInMSs = entry.getStartTime();
         endTimeInMSs = entry.getEndTime();
-        intervalInMinutes = entry.getInterval();
+        intervalInMinutes = entry.getValidityIntervalInMinutes();
         if (intervalInMinutes > 0) {
             addScheduledTime(entry.getMinute(), minutes);
             addScheduledTime(entry.getHour(), hours);

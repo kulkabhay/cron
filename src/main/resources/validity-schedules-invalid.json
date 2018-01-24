@@ -11,7 +11,11 @@
     "year":"",
     "startTime":1515796347000,
     "endTime":1516689000000,
-    "interval":10
+    "validityInterval": {
+      "days":-1,
+      "hours":24,
+      "minutes":60
+    }
   },
   {
     "minute":"45, 30, 1, 14",
@@ -21,8 +25,7 @@
     "month":"11, 0-1",
     "year":"2018",
     "startTime":1515796347000,
-    "endTime":1516689000000,
-    "interval":14
+    "endTime":1516689000000
   },
   {
     "minute":"1,10,5",
@@ -33,6 +36,6 @@
     "year":"2018",
     "startTime":1515796347000,
     "endTime":1516689000000,
-    "interval":14
+    "validityInterval": {}
   }
 ]

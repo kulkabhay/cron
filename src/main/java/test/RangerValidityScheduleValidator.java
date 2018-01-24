@@ -37,28 +37,32 @@ public class RangerValidityScheduleValidator {
     }
 
     private boolean validateTimeRangeSpec(Action action, List<ValidationFailureDetails> validationFailures) {
-        boolean ret = false;
+        boolean ret = validateValidityInterval(validationFailures);
 
-        long currentTime = new Date().getTime();
+        if (ret) {
+            ret = false;
 
-        if (validitySchedule.getInterval() < 0) {
-            validationFailures.add(new ValidationFailureDetails(0, "interval", "", false, true, false, "interval less than 0"));
-        } else {
-            if (validitySchedule.getStartTime() >= validitySchedule.getEndTime()) {
-                validationFailures.add(new ValidationFailureDetails(0, "startTime", "", false, true, false, "startTime later than endTime"));
-            } else if (action == Action.CREATE && validitySchedule.getEndTime() <= currentTime) {
-                validationFailures.add(new ValidationFailureDetails(0, "endTime", "", false, true, false, "endTime earlier than current time"));
+            if (validitySchedule.getValidityIntervalInMinutes() < 0) {
+                validationFailures.add(new ValidationFailureDetails(0, "interval", "", false, true, false, "interval less than 0"));
             } else {
-                if (validitySchedule.getInterval() > 0) {
-                    ret = validateFieldSpec(RangerValiditySchedule.ScheduleFieldSpec.minute, validationFailures);
-                    ret = validateFieldSpec(RangerValiditySchedule.ScheduleFieldSpec.hour, validationFailures) && ret;
-                    ret = validateFieldSpec(RangerValiditySchedule.ScheduleFieldSpec.dayOfMonth, validationFailures) && ret;
-                    ret = validateFieldSpec(RangerValiditySchedule.ScheduleFieldSpec.dayOfWeek, validationFailures) && ret;
-                    ret = validateFieldSpec(RangerValiditySchedule.ScheduleFieldSpec.month, validationFailures) && ret;
-                    ret = validateFieldSpec(RangerValiditySchedule.ScheduleFieldSpec.year, validationFailures) && ret;
-                    ret = ret && validateInterval(validationFailures);
+                long currentTime = new Date().getTime();
+
+                if (validitySchedule.getStartTime() >= validitySchedule.getEndTime()) {
+                    validationFailures.add(new ValidationFailureDetails(0, "startTime", "", false, true, false, "startTime later than endTime"));
+                } else if (action == Action.CREATE && validitySchedule.getEndTime() <= currentTime) {
+                    validationFailures.add(new ValidationFailureDetails(0, "endTime", "", false, true, false, "endTime earlier than current time"));
                 } else {
-                    ret = true;
+                    if (validitySchedule.getValidityIntervalInMinutes() > 0) {
+                        ret = validateFieldSpec(RangerValiditySchedule.ScheduleFieldSpec.minute, validationFailures);
+                        ret = validateFieldSpec(RangerValiditySchedule.ScheduleFieldSpec.hour, validationFailures) && ret;
+                        ret = validateFieldSpec(RangerValiditySchedule.ScheduleFieldSpec.dayOfMonth, validationFailures) && ret;
+                        ret = validateFieldSpec(RangerValiditySchedule.ScheduleFieldSpec.dayOfWeek, validationFailures) && ret;
+                        ret = validateFieldSpec(RangerValiditySchedule.ScheduleFieldSpec.month, validationFailures) && ret;
+                        ret = validateFieldSpec(RangerValiditySchedule.ScheduleFieldSpec.year, validationFailures) && ret;
+                        ret = ret && validateIntervalDuration(validationFailures);
+                    } else {
+                        ret = true;
+                    }
                 }
             }
         }
@@ -70,11 +74,25 @@ public class RangerValidityScheduleValidator {
         return new RangerValiditySchedule(getNormalizedValue(RangerValiditySchedule.ScheduleFieldSpec.minute), getNormalizedValue(RangerValiditySchedule.ScheduleFieldSpec.hour),
                 getNormalizedValue(RangerValiditySchedule.ScheduleFieldSpec.dayOfMonth), getNormalizedValue(RangerValiditySchedule.ScheduleFieldSpec.dayOfWeek),
                 getNormalizedValue(RangerValiditySchedule.ScheduleFieldSpec.month), getNormalizedValue(RangerValiditySchedule.ScheduleFieldSpec.year),
-                validitySchedule.getStartTime(), validitySchedule.getEndTime(), validitySchedule.getInterval());
+                validitySchedule.getStartTime(), validitySchedule.getEndTime(), validitySchedule.getValidityInterval());
 
     }
 
-    private boolean validateFieldSpec(RangerValiditySchedule.ScheduleFieldSpec field, List<ValidationFailureDetails> validationFailures) {
+    private boolean validateValidityInterval(List<ValidationFailureDetails> validationFailures) {
+        boolean ret = true;
+        RangerValiditySchedule.RangerValidityInterval validityInterval = validitySchedule.getValidityInterval();
+        if (validityInterval != null) {
+            if (validityInterval.getDays() < 0
+                    || (validityInterval.getHours() < 0 || validityInterval.getHours() > 23)
+                    || (validityInterval.getMinutes() < 0 || validityInterval.getMinutes() > 59)) {
+                validationFailures.add(new ValidationFailureDetails(0, "interval", "", false, true, false, "invalid interval"));
+                ret = false;
+            }
+        }
+        return ret;
+    }
+
+        private boolean validateFieldSpec(RangerValiditySchedule.ScheduleFieldSpec field, List<ValidationFailureDetails> validationFailures) {
         boolean ret = true;
 
         String fieldValue = validitySchedule.getFieldValue(field);
@@ -104,7 +122,7 @@ public class RangerValidityScheduleValidator {
         return ret;
     }
 
-    private boolean validateInterval(List<ValidationFailureDetails> validationFailures) {
+    private boolean validateIntervalDuration(List<ValidationFailureDetails> validationFailures) {
         boolean ret = true;
 
         if (!validationFailures.isEmpty() || validityPeriodEstimator == null) {
@@ -153,7 +171,7 @@ public class RangerValidityScheduleValidator {
                     }
                 }
             }
-            if (validitySchedule.getInterval() > minSchedulingInterval) {
+            if (validitySchedule.getValidityIntervalInMinutes() > minSchedulingInterval) {
                 validationFailures.add(new ValidationFailureDetails(0, "interval", "", false, true, false, "interval longer than specified interval"));
 
                 ret = false;
@@ -284,7 +302,7 @@ public class RangerValidityScheduleValidator {
         if (ret) {
             if (!StringUtils.equals(value, RangerValiditySchedule.WILDCARD)) {
 
-                int minDiff = maxValidValue + 1;
+                int minDiff = (values.size() == 1) ? values.get(0) : maxValidValue + 1;
 
                 if (values.size() > 1) {
                     Collections.sort(values);
@@ -301,7 +319,6 @@ public class RangerValidityScheduleValidator {
                     }
                 }
                 value = Integer.toString(minDiff);
-
             }
             validityPeriodEstimator.setFieldValue(field, value);
             System.out.println("Set " + field + " to " + value);
@@ -312,7 +329,7 @@ public class RangerValidityScheduleValidator {
     private String getNormalizedValue(RangerValiditySchedule.ScheduleFieldSpec field) {
         String ret = null;
 
-        if (validitySchedule.getInterval() > 0) {
+        if (validitySchedule.getValidityIntervalInMinutes() > 0) {
             String noWhiteSpace = StringUtils.deleteWhitespace(validitySchedule.getFieldValue(field));
             String[] specs = StringUtils.split(noWhiteSpace, ",");
 

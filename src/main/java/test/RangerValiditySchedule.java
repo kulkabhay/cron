@@ -51,10 +51,10 @@ public class RangerValiditySchedule {
     private String year;
     private long startTime;
     private long endTime;
-    private int interval;
+    private RangerValidityInterval validityInterval;
 
     public RangerValiditySchedule(String minute, String hour, String dayOfMonth, String dayOfWeek, String month, String year,
-                                  long startTime, long endTime, int interval) {
+                                  long startTime, long endTime, RangerValidityInterval validityInterval) {
         setMinute(minute);
         setHour(hour);
         setDayOfMonth(dayOfMonth);
@@ -63,11 +63,11 @@ public class RangerValiditySchedule {
         setYear(year);
         setStartTime(startTime);
         setEndTime(endTime);
-        setInterval(interval);
+        setValidityInterval(validityInterval);
     }
 
     RangerValiditySchedule() {
-        this(null, null, null, null, null, null, 0, 0, 0);
+        this(null, null, null, null, null, null, 0, 0, null);
     }
 
     public String getMinute() { return minute;}
@@ -78,7 +78,7 @@ public class RangerValiditySchedule {
     public String getYear() { return year;}
     public long getStartTime() { return startTime;}
     public long getEndTime() { return endTime;}
-    public int getInterval() { return interval;}
+    public RangerValidityInterval getValidityInterval() { return validityInterval;}
 
     public void setMinute(String minute) { this.minute = minute;}
     public void setHour(String hour) { this.hour = hour;}
@@ -88,7 +88,7 @@ public class RangerValiditySchedule {
     public void setYear(String year) { this.year = year;}
     public void setStartTime(long startTime) { this.startTime = startTime;}
     public void setEndTime(long endTime) { this.endTime = endTime;}
-    public void setInterval(int interval) { this.interval = interval;}
+    public void setValidityInterval(RangerValidityInterval validityInterval) { this.validityInterval = validityInterval;}
 
     public void setFieldValue(ScheduleFieldSpec field, String value) {
         switch (field) {
@@ -134,6 +134,12 @@ public class RangerValiditySchedule {
         }
     }
 
+    public int getValidityIntervalInMinutes() {
+        RangerValidityInterval validityInterval = getValidityInterval();
+        return validityInterval != null ?
+                (validityInterval.getDays()*24 + validityInterval.getHours())*60 + validityInterval.getMinutes() : 0;
+    }
+
     public String toString() {
         StringBuffer sb = new StringBuffer();
         sb.append("RangerValiditySchedule={");
@@ -145,9 +151,47 @@ public class RangerValiditySchedule {
         sb.append(", year=").append(year);
         sb.append(", startTime=").append(new Date(startTime));
         sb.append(", endTime=").append(new Date(endTime));
-        sb.append(", interval-in-minutes=").append(interval);
+        sb.append(", validityInterval=").append(validityInterval);
         sb.append(" }");
         return sb.toString();
     }
+
+    @JsonAutoDetect(fieldVisibility=Visibility.ANY)
+    @JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
+    @JsonIgnoreProperties(ignoreUnknown=true)
+    @XmlRootElement
+    @XmlAccessorType(XmlAccessType.FIELD)
+    class RangerValidityInterval {
+        private final int days;
+        private final int hours;
+        private final int minutes;
+
+        RangerValidityInterval() {
+            this.days = 0;
+            this.hours = 0;
+            this.minutes = 0;
+        }
+
+        RangerValidityInterval(int days, int hours, int minutes) {
+            this.days = days;
+            this.hours = hours;
+            this.minutes = minutes;
+        }
+
+        int getDays() { return days; }
+        int getHours() { return hours; }
+        int getMinutes() { return minutes; }
+
+        public String toString() {
+            StringBuffer sb = new StringBuffer();
+            sb.append("RangerValidityInterval={");
+            sb.append("days=").append(days);
+            sb.append(", hours=").append(hours);
+            sb.append(", minutes=").append(minutes);;
+            sb.append(" }");
+            return sb.toString();
+        }
+    }
+
 
 }

@@ -8,7 +8,9 @@
     "year":"2018",
     "startTime":1515796347000,
     "endTime":1516689000000,
-    "interval":10
+    "validityInterval":{
+      "minutes":10
+    }
   },
   {
     "minute":"59, 15, 1,14",
@@ -19,12 +21,13 @@
     "year":"2018",
     "startTime":1515796347000,
     "endTime":1547691486000,
-    "interval":0
+    "interval": {
+      "minutes":0
+    }
   },
   {
     "startTime":1515796347000,
     "endTime":1547691486000,
-    "interval":0
   },
   {
     "startTime":1515796347000,

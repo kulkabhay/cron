@@ -7,7 +7,9 @@
     "month":"*",
     "year":"2018",
     "startTime":1515796347000,
-    "endTime":1516689000000,
-    "interval":9
+    "endTime":1517689000000,
+    "validityInterval":{
+      "minutes":9
+    }
   }
 ]
