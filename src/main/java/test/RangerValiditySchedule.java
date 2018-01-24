@@ -166,13 +166,13 @@ public class RangerValiditySchedule {
         private final int hours;
         private final int minutes;
 
-        RangerValidityInterval() {
+        public RangerValidityInterval() {
             this.days = 0;
             this.hours = 0;
             this.minutes = 0;
         }
 
-        RangerValidityInterval(int days, int hours, int minutes) {
+        public RangerValidityInterval(int days, int hours, int minutes) {
             this.days = days;
             this.hours = hours;
             this.minutes = minutes;
