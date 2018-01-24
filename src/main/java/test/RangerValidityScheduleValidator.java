@@ -2,6 +2,8 @@ package test;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -11,6 +13,8 @@ import java.util.Date;
 import java.util.List;
 
 public class RangerValidityScheduleValidator {
+
+    private static final Log LOG = LogFactory.getLog(RangerValidityScheduleValidator.class);
 
     public enum Action {
         CREATE, UPDATE, DELETE
@@ -30,7 +34,9 @@ public class RangerValidityScheduleValidator {
 
         boolean isValid = validateTimeRangeSpec(action, validationFailures);
         if (isValid) {
-            System.out.println("validityPeriodEstimator:[" + validityPeriodEstimator + "]");
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("validityPeriodEstimator:[" + validityPeriodEstimator + "]");
+            }
             ret = getNormalizedValiditySchedule();
         }
         return ret;
@@ -320,7 +326,9 @@ public class RangerValidityScheduleValidator {
                 value = Integer.toString(minDiff);
             }
             validityPeriodEstimator.setFieldValue(field, value);
-            System.out.println("Set " + field + " to " + value);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Set " + field + " to " + value);
+            }
         }
         return ret;
     }

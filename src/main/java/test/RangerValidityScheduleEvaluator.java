@@ -1,6 +1,8 @@
 package test;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -10,6 +12,8 @@ import java.util.GregorianCalendar;
 import java.util.List;
 
 public class RangerValidityScheduleEvaluator {
+
+    private static final Log LOG = LogFactory.getLog(RangerValidityScheduleEvaluator.class);
 
     private List<ScheduledTimeMatcher> minutes = new ArrayList<>();
     private List<ScheduledTimeMatcher> hours = new ArrayList<>();
@@ -45,17 +49,23 @@ public class RangerValidityScheduleEvaluator {
                 Calendar now = new GregorianCalendar();
                 now.setTime(new Date(currentTime));
 
-                System.out.println("Current-Time:[" + now.getTime() +"]");
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Current-Time:[" + now.getTime() + "]");
+                }
 
                 Calendar startOfInterval = getClosestPastEpoch(now);
 
                 if (startOfInterval != null) {
-                    System.out.println("Start-of-Interval:[" + startOfInterval.getTime() +"]");
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Start-of-Interval:[" + startOfInterval.getTime() + "]");
+                    }
 
                     Calendar endOfInterval = (Calendar) startOfInterval.clone();
                     endOfInterval.add(Calendar.MINUTE, intervalInMinutes);
                     endOfInterval.getTime();    // for recomputation
-                    System.out.println("End-of-Interval:[" + endOfInterval.getTime() +"]");
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("End-of-Interval:[" + endOfInterval.getTime() + "]");
+                    }
                     ret = endOfInterval.after(now);
                 }
 
@@ -193,10 +203,12 @@ public class RangerValidityScheduleEvaluator {
 
             ret = getEarlierCalendar(dayOfMonthCalendar, dayOfWeekCalendar);
 
-            System.out.println("ClosestPastEpoch:[" + ret.getTime() + "]");
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("ClosestPastEpoch:[" + ret.getTime() + "]");
+            }
 
         } catch(Exception e) {
-            System.out.println("Could not find ClosestPastEpoch");
+            LOG.error("Could not find ClosestPastEpoch", e);
         }
         return ret;
     }
@@ -217,7 +229,9 @@ public class RangerValidityScheduleEvaluator {
             }
             for (ScheduledTimeMatcher time : searchList) {
                 if (time.isMatch(value)) {
-                    System.out.println("Found match in field:[" + fieldSpec + "], value:[" + value + "], borrow:[" + borrow +"]");
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Found match in field:[" + fieldSpec + "], value:[" + value + "], borrow:[" + borrow + "]");
+                    }
                     return borrow ? value-range : value;
                 }
             }
@@ -241,7 +255,9 @@ public class RangerValidityScheduleEvaluator {
             }
             for (ScheduledTimeMatcher time : searchList) {
                 if (time.isMatch(value)) {
-                    System.out.println("Found match in field:[" + fieldSpec + "], value:[" + value + "], borrow:[" + borrow +"], maximum:[" + maximum + "]");
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Found match in field:[" + fieldSpec + "], value:[" + value + "], borrow:[" + borrow + "], maximum:[" + maximum + "]");
+                    }
                     return borrow ? value-range : value;
                 }
             }
@@ -271,10 +287,14 @@ public class RangerValidityScheduleEvaluator {
 
     private Calendar getEarlierCalendar(Calendar dayOfMonthCalendar, Calendar dayOfWeekCalendar) throws Exception {
 
-        System.out.println("dayOfMonthCalendar:[" + dayOfMonthCalendar.getTime() + "]");
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("dayOfMonthCalendar:[" + dayOfMonthCalendar.getTime() + "]");
+        }
         Calendar withDayOfMonth = fillOutCalendar(dayOfMonthCalendar);
 
-        System.out.println("dayOfWeekCalendar:[" + dayOfWeekCalendar.getTime() + "]");
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("dayOfWeekCalendar:[" + dayOfWeekCalendar.getTime() + "]");
+        }
         Calendar withDayOfWeek = fillOutCalendar(dayOfWeekCalendar);
 
         return withDayOfMonth.after(withDayOfWeek) ? withDayOfMonth : withDayOfWeek;
@@ -306,7 +326,9 @@ public class RangerValidityScheduleEvaluator {
         ret.set(Calendar.MONTH, month);
 
         ret.getTime(); // for recomputation
-        System.out.println("Filled-out-Calendar:[" + ret.getTime() + "]");
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Filled-out-Calendar:[" + ret.getTime() + "]");
+        }
 
         return ret;
     }
