@@ -4,7 +4,7 @@ public class ScheduledTimeRangeMatcher implements ScheduledTimeMatcher {
     private int lowerBound;
     private int upperBound;
 
-    ScheduledTimeRangeMatcher(int lowerBound, int upperBound) {
+    public ScheduledTimeRangeMatcher(int lowerBound, int upperBound) {
         this.lowerBound = lowerBound;
         this.upperBound = upperBound;
     }

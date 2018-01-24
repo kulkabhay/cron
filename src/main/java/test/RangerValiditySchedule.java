@@ -19,7 +19,7 @@ import java.util.Date;
 
 public class RangerValiditySchedule {
 
-    enum ScheduleFieldSpec {
+    public enum ScheduleFieldSpec {
         minute(0, 59, PERMITTED_SPECIAL_CHARACTERS_FOR_MINUTES),
         hour(0, 23, PERMITTED_SPECIAL_CHARACTERS),
         dayOfMonth(1, 31, PERMITTED_SPECIAL_CHARACTERS),
@@ -28,9 +28,9 @@ public class RangerValiditySchedule {
         year(2017, Integer.MAX_VALUE, PERMITTED_SPECIAL_CHARACTERS),
         ;
 
-        final int minimum;
-        final int maximum;
-        final String specialChars;
+        public final int minimum;
+        public final int maximum;
+        public final String specialChars;
 
         ScheduleFieldSpec(int minimum, int maximum, String specialChars) {
             this.minimum = minimum;
@@ -66,7 +66,7 @@ public class RangerValiditySchedule {
         setValidityInterval(validityInterval);
     }
 
-    RangerValiditySchedule() {
+    public RangerValiditySchedule() {
         this(null, null, null, null, null, null, 0, 0, null);
     }
 
@@ -161,7 +161,7 @@ public class RangerValiditySchedule {
     @JsonIgnoreProperties(ignoreUnknown=true)
     @XmlRootElement
     @XmlAccessorType(XmlAccessType.FIELD)
-    class RangerValidityInterval {
+    public class RangerValidityInterval {
         private final int days;
         private final int hours;
         private final int minutes;
@@ -178,9 +178,9 @@ public class RangerValiditySchedule {
             this.minutes = minutes;
         }
 
-        int getDays() { return days; }
-        int getHours() { return hours; }
-        int getMinutes() { return minutes; }
+        public int getDays() { return days; }
+        public int getHours() { return hours; }
+        public int getMinutes() { return minutes; }
 
         public String toString() {
             StringBuilder sb = new StringBuilder();

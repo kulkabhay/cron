@@ -3,7 +3,7 @@ package test;
 public class ScheduledTimeExactMatcher implements ScheduledTimeMatcher {
     private int scheduledTime;
 
-    ScheduledTimeExactMatcher(int scheduledTime) {
+    public ScheduledTimeExactMatcher(int scheduledTime) {
         this.scheduledTime = scheduledTime;
     }
     @Override
