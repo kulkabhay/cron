@@ -49,12 +49,12 @@ public class RangerValiditySchedule {
     private String dayOfWeek;
     private String month;
     private String year;
-    private long startTime;
-    private long endTime;
+    private Date startTime;
+    private Date endTime;
     private RangerValidityInterval validityInterval;
 
     public RangerValiditySchedule(String minute, String hour, String dayOfMonth, String dayOfWeek, String month, String year,
-                                  long startTime, long endTime, RangerValidityInterval validityInterval) {
+                                  Date startTime, Date endTime, RangerValidityInterval validityInterval) {
         setMinute(minute);
         setHour(hour);
         setDayOfMonth(dayOfMonth);
@@ -67,7 +67,7 @@ public class RangerValiditySchedule {
     }
 
     public RangerValiditySchedule() {
-        this(null, null, null, null, null, null, 0, 0, null);
+        this(null, null, null, null, null, null, null, null, null);
     }
 
     public String getMinute() { return minute;}
@@ -76,8 +76,8 @@ public class RangerValiditySchedule {
     public String getDayOfWeek() { return dayOfWeek;}
     public String getMonth() { return month;}
     public String getYear() { return year;}
-    public long getStartTime() { return startTime;}
-    public long getEndTime() { return endTime;}
+    public Date getStartTime() { return startTime;}
+    public Date getEndTime() { return endTime;}
     public RangerValidityInterval getValidityInterval() { return validityInterval;}
 
     public void setMinute(String minute) { this.minute = minute;}
@@ -86,8 +86,8 @@ public class RangerValiditySchedule {
     public void setDayOfWeek(String dayOfWeek) { this.dayOfWeek = dayOfWeek;}
     public void setMonth(String month) { this.month = month;}
     public void setYear(String year) { this.year = year;}
-    public void setStartTime(long startTime) { this.startTime = startTime;}
-    public void setEndTime(long endTime) { this.endTime = endTime;}
+    public void setStartTime(Date startTime) { this.startTime = startTime;}
+    public void setEndTime(Date endTime) { this.endTime = endTime;}
     public void setValidityInterval(RangerValidityInterval validityInterval) { this.validityInterval = validityInterval;}
 
     public void setFieldValue(ScheduleFieldSpec field, String value) {
@@ -149,8 +149,8 @@ public class RangerValiditySchedule {
         sb.append(", dayOfWeek=").append(dayOfWeek);
         sb.append(", month=").append(month);
         sb.append(", year=").append(year);
-        sb.append(", startTime=").append(new Date(startTime));
-        sb.append(", endTime=").append(new Date(endTime));
+        sb.append(", startTime=").append(startTime);
+        sb.append(", endTime=").append(endTime);
         sb.append(", validityInterval=").append(validityInterval);
         sb.append(" }");
         return sb.toString();

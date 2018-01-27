@@ -6,8 +6,8 @@
     "dayOfWeek":"5, 7",
     "month":"*",
     "year":"2018",
-    "startTime":1515796347000,
-    "endTime":1517689000000,
+    "startTime":"20180112-14:32:27.000-0800",
+    "endTime":"20180203-12:16:40.000-0800",
     "validityInterval":{
       "minutes":9
     }

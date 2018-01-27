@@ -55,7 +55,7 @@ public class AppTest
 
                 List<ValidationFailureDetails> validationFailures = new ArrayList<>();
                 RangerValidityScheduleValidator validator = new RangerValidityScheduleValidator(entry);
-                RangerValiditySchedule normalizedValiditySchedule = validator.validate(RangerValidityScheduleValidator.Action.UPDATE, validationFailures);
+                RangerValiditySchedule normalizedValiditySchedule = validator.validate(RangerValidityScheduleValidator.Action.CREATE, validationFailures);
                 if (normalizedValiditySchedule == null) {
                     for (ValidationFailureDetails failure : validationFailures) {
                         System.out.println(failure);

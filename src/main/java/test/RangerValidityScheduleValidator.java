@@ -53,9 +53,9 @@ public class RangerValidityScheduleValidator {
             } else {
                 long currentTime = new Date().getTime();
 
-                if (validitySchedule.getStartTime() >= validitySchedule.getEndTime()) {
+                if (validitySchedule.getStartTime() == null || validitySchedule.getStartTime().getTime() >= validitySchedule.getEndTime().getTime()) {
                     validationFailures.add(new ValidationFailureDetails(0, "startTime", "", false, true, false, "startTime later than endTime"));
-                } else if (action == Action.CREATE && validitySchedule.getEndTime() <= currentTime) {
+                } else if (validitySchedule.getEndTime() == null || action == Action.CREATE && validitySchedule.getEndTime().getTime() <= currentTime) {
                     validationFailures.add(new ValidationFailureDetails(0, "endTime", "", false, true, false, "endTime earlier than current time"));
                 } else {
                     if (validitySchedule.getValidityIntervalInMinutes() > 0) {
