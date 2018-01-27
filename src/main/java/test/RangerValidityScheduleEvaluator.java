@@ -26,7 +26,7 @@ public class RangerValidityScheduleEvaluator {
     private long endTimeInMSs;
     private int intervalInMinutes;
 
-    RangerValidityScheduleEvaluator(RangerValiditySchedule entry) {
+    public RangerValidityScheduleEvaluator(RangerValiditySchedule entry) {
         startTimeInMSs = entry.getStartTime();
         endTimeInMSs = entry.getEndTime();
         intervalInMinutes = entry.getValidityIntervalInMinutes();

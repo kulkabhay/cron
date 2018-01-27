@@ -24,7 +24,7 @@ public class RangerValidityScheduleValidator {
 
     private RangerValiditySchedule validityPeriodEstimator;
 
-    RangerValidityScheduleValidator(RangerValiditySchedule validitySchedule) {
+    public RangerValidityScheduleValidator(RangerValiditySchedule validitySchedule) {
         this.validitySchedule = validitySchedule;
     }
 
