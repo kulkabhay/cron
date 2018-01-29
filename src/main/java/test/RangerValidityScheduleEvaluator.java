@@ -4,6 +4,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.ranger.plugin.util.RangerPerfTracer;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -15,6 +16,9 @@ import java.util.List;
 public class RangerValidityScheduleEvaluator {
 
     private static final Log LOG = LogFactory.getLog(RangerValidityScheduleEvaluator.class);
+    private static final Log PERF_LOG = LogFactory.getLog("test.perf.RangerValidityScheduleEvaluator");
+
+
 
     private List<ScheduledTimeMatcher> minutes = new ArrayList<>();
     private List<ScheduledTimeMatcher> hours = new ArrayList<>();
@@ -43,6 +47,13 @@ public class RangerValidityScheduleEvaluator {
 
     public boolean isApplicable(long currentTime) {
         boolean ret = false;
+        RangerPerfTracer perf = null;
+
+        if(RangerPerfTracer.isPerfTraceEnabled(PERF_LOG)) {
+            perf = RangerPerfTracer.getPerfTracer(PERF_LOG, "RangerValidityScheduleEvaluator.isApplicable(currentTime=" + currentTime + ")");
+            LOG.info("RangerValidityScheduleEvaluator.isApplicable(" + currentTime + ")");
+        }
+
 
         long startTimeInMSs = validitySchedule.getStartTime() == null ? 0 : validitySchedule.getStartTime().getTime();
         long endTimeInMSs = validitySchedule.getEndTime() == null ? 0 : validitySchedule.getEndTime().getTime();
@@ -81,6 +92,7 @@ public class RangerValidityScheduleEvaluator {
                 ret = true;
             }
         }
+        RangerPerfTracer.logAlways(perf);
         return ret;
     }
 
