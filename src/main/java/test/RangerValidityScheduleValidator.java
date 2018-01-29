@@ -95,6 +95,15 @@ public class RangerValidityScheduleValidator {
                 ret = false;
             }
         }
+        int validityIntervalInMinutes = validitySchedule.getValidityIntervalInMinutes();
+        if (validityIntervalInMinutes > 0) {
+            if (StringUtils.isBlank(validitySchedule.getMinute()) && StringUtils.isBlank(validitySchedule.getHour())
+                    && StringUtils.isBlank(validitySchedule.getDayOfMonth()) && StringUtils.isBlank(validitySchedule.getDayOfWeek())
+                    && StringUtils.isBlank(validitySchedule.getMonth()) && StringUtils.isBlank(validitySchedule.getYear())) {
+                validationFailures.add(new ValidationFailureDetails(0, "validitySchedule", "", false, true, false, "empty validitySchedule"));
+                ret = false;
+            }
+        }
         return ret;
     }
 
