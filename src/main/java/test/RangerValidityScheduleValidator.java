@@ -102,16 +102,17 @@ public class RangerValidityScheduleValidator {
         boolean ret = true;
 
         String fieldValue = validitySchedule.getFieldValue(field);
-        if (StringUtils.isNotBlank(fieldValue)) {
-            ret = validateCharacters(fieldValue, field.specialChars);
-
-            if (!ret) {
-                validationFailures.add(new ValidationFailureDetails(0, field.toString(), "", false, true, false, "invalid character(s)"));
-            } else {
-                ret = validateRanges(field, field.minimum, field.maximum, validationFailures);
+        if (StringUtils.isBlank(fieldValue)) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("No value provided for [" + field + "]");
             }
+        }
+        ret = validateCharacters(fieldValue, field.specialChars);
+
+        if (!ret) {
+            validationFailures.add(new ValidationFailureDetails(0, field.toString(), "", false, true, false, "invalid character(s)"));
         } else {
-            validationFailures.add(new ValidationFailureDetails(0, field.toString(), "", false, true, false, "No value specified"));
+                ret = validateRanges(field, field.minimum, field.maximum, validationFailures);
         }
         return ret;
     }
@@ -138,32 +139,33 @@ public class RangerValidityScheduleValidator {
 
             String minutes = validityPeriodEstimator.getFieldValue(RangerValiditySchedule.ScheduleFieldSpec.minute);
             if (!StringUtils.equals(minutes, RangerValiditySchedule.WILDCARD)) {
-                minSchedulingInterval = Integer.valueOf(minutes);
+                minSchedulingInterval = StringUtils.isBlank(minutes) ? RangerValiditySchedule.ScheduleFieldSpec.minute.maximum + 1 : Integer.valueOf(minutes);
 
                 if (minSchedulingInterval == RangerValiditySchedule.ScheduleFieldSpec.minute.maximum + 1) {
                     String hours = validityPeriodEstimator.getFieldValue(RangerValiditySchedule.ScheduleFieldSpec.hour);
                     if (!StringUtils.equals(hours, RangerValiditySchedule.WILDCARD)) {
-                        int hour = Integer.valueOf(hours);
+                        int hour = StringUtils.isBlank(hours) ? RangerValiditySchedule.ScheduleFieldSpec.hour.maximum + 1 :Integer.valueOf(hours);
                         minSchedulingInterval = hour * (RangerValiditySchedule.ScheduleFieldSpec.minute.maximum+1);
 
                         if (hour == RangerValiditySchedule.ScheduleFieldSpec.hour.maximum + 1) {
                             String dayOfMonths = validityPeriodEstimator.getFieldValue(RangerValiditySchedule.ScheduleFieldSpec.dayOfMonth);
                             String dayOfWeeks = validityPeriodEstimator.getFieldValue(RangerValiditySchedule.ScheduleFieldSpec.dayOfWeek);
-                            if (StringUtils.isBlank(dayOfMonths)) {
-                                dayOfMonths = RangerValiditySchedule.WILDCARD;
+
+                            int dayOfMonth = 1, dayOfWeek = 1;
+                            if (!StringUtils.equals(dayOfMonths, RangerValiditySchedule.WILDCARD)) {
+                                dayOfMonth = StringUtils.isBlank(dayOfMonths) ? RangerValiditySchedule.ScheduleFieldSpec.dayOfMonth.maximum + 1 : Integer.valueOf(dayOfMonths);
                             }
-                            if (StringUtils.isBlank(dayOfWeeks)) {
-                                dayOfWeeks = RangerValiditySchedule.WILDCARD;
+                            if (!StringUtils.equals(dayOfWeeks, RangerValiditySchedule.WILDCARD)) {
+                                dayOfWeek = StringUtils.isBlank(dayOfWeeks) ? RangerValiditySchedule.ScheduleFieldSpec.dayOfWeek.maximum + 1 : Integer.valueOf(dayOfWeeks);
                             }
-                            if (!StringUtils.equals(dayOfMonths, RangerValiditySchedule.WILDCARD) && !StringUtils.equals(dayOfWeeks, RangerValiditySchedule.WILDCARD)) {
-                                int dayOfMonth = Integer.valueOf(dayOfMonths);
-                                int dayOfWeek = Integer.valueOf(dayOfWeeks);
-                                minSchedulingInterval = dayOfWeek*(RangerValiditySchedule.ScheduleFieldSpec.hour.maximum+1)*(RangerValiditySchedule.ScheduleFieldSpec.minute.maximum+1);
+                            if (!StringUtils.equals(dayOfMonths, RangerValiditySchedule.WILDCARD) || !StringUtils.equals(dayOfWeeks, RangerValiditySchedule.WILDCARD)) {
+                                int minDays = dayOfMonth > dayOfWeek ? dayOfWeek : dayOfMonth;
+                                minSchedulingInterval = minDays*(RangerValiditySchedule.ScheduleFieldSpec.hour.maximum+1)*(RangerValiditySchedule.ScheduleFieldSpec.minute.maximum+1);
 
                                 if (dayOfMonth == (RangerValiditySchedule.ScheduleFieldSpec.dayOfMonth.maximum+1) && dayOfWeek == (RangerValiditySchedule.ScheduleFieldSpec.dayOfWeek.maximum+1)) {
                                     String months = validityPeriodEstimator.getFieldValue(RangerValiditySchedule.ScheduleFieldSpec.month);
                                     if (!StringUtils.equals(months, RangerValiditySchedule.WILDCARD)) {
-                                        int month = Integer.valueOf(months);
+                                        int month = StringUtils.isBlank(months) ? RangerValiditySchedule.ScheduleFieldSpec.month.maximum + 1 :Integer.valueOf(months);
                                         minSchedulingInterval = month * 28 * (RangerValiditySchedule.ScheduleFieldSpec.hour.maximum + 1) * (RangerValiditySchedule.ScheduleFieldSpec.minute.maximum + 1);
 
                                         if (month == RangerValiditySchedule.ScheduleFieldSpec.month.maximum + 1) {
@@ -307,7 +309,7 @@ public class RangerValidityScheduleValidator {
         if (ret) {
             if (!StringUtils.equals(value, RangerValiditySchedule.WILDCARD)) {
 
-                int minDiff = (values.size() == 1) ? values.get(0) : maxValidValue + 1;
+                int minDiff = (values.size() <= 1) ?  maxValidValue + 1 : Integer.MAX_VALUE;
 
                 if (values.size() > 1) {
                     Collections.sort(values);
@@ -323,7 +325,9 @@ public class RangerValidityScheduleValidator {
                         }
                     }
                 }
-                value = Integer.toString(minDiff);
+                if (values.size() > 0) {
+                    value = Integer.toString(minDiff);
+                }
             }
             validityPeriodEstimator.setFieldValue(field, value);
             if (LOG.isDebugEnabled()) {

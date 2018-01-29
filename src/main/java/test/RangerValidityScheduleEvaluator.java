@@ -1,5 +1,6 @@
 package test;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -122,20 +123,32 @@ public class RangerValidityScheduleEvaluator {
         try {
             boolean borrow;
 
-            int minute = getPastFieldValue(RangerValiditySchedule.ScheduleFieldSpec.minute, minutes, current.get(Calendar.MINUTE));
-            if (minute < RangerValiditySchedule.ScheduleFieldSpec.minute.minimum) {
-                minute = RangerValiditySchedule.ScheduleFieldSpec.minute.maximum - RangerValiditySchedule.ScheduleFieldSpec.minute.minimum + 1 +  minute;
-                borrow = true;
+            int minute, hour, dayOfMonth, dayOfWeek;
+            if (CollectionUtils.isNotEmpty(minutes)) {
+                minute = getPastFieldValue(RangerValiditySchedule.ScheduleFieldSpec.minute, minutes, current.get(Calendar.MINUTE));
+                if (minute < RangerValiditySchedule.ScheduleFieldSpec.minute.minimum) {
+                    minute = RangerValiditySchedule.ScheduleFieldSpec.minute.maximum - RangerValiditySchedule.ScheduleFieldSpec.minute.minimum + 1 + minute;
+                    borrow = true;
+                } else {
+                    borrow = false;
+                }
             } else {
+                minute = current.get(Calendar.MINUTE);
                 borrow = false;
             }
-            int hour = getPastFieldValue(RangerValiditySchedule.ScheduleFieldSpec.hour, hours, current.get(Calendar.HOUR_OF_DAY)- (borrow ? 1 : 0));
+            if (CollectionUtils.isNotEmpty(hours)) {
+                hour = getPastFieldValue(RangerValiditySchedule.ScheduleFieldSpec.hour, hours, current.get(Calendar.HOUR_OF_DAY) - (borrow ? 1 : 0));
+            } else {
+                hour = current.get(Calendar.HOUR_OF_DAY) - (borrow ? 1 : 0);
+            }
+
             if (hour < RangerValiditySchedule.ScheduleFieldSpec.hour.minimum) {
                 hour = RangerValiditySchedule.ScheduleFieldSpec.hour.maximum - RangerValiditySchedule.ScheduleFieldSpec.hour.minimum + 1 + hour;
                 borrow = true;
             } else {
                 borrow = false;
             }
+
             int initialDay = current.get(Calendar.DAY_OF_MONTH);
             boolean borrowForMonth = false;
             if (borrow) {
@@ -155,7 +168,12 @@ public class RangerValidityScheduleEvaluator {
             }
 
             int maximumDaysInPreviousMonth = getMaximumValForPreviousMonth(current);
-            int dayOfMonth = getPastFieldValue(RangerValiditySchedule.ScheduleFieldSpec.dayOfMonth, daysOfMonth, initialDay, maximumDaysInPreviousMonth);
+
+            if (CollectionUtils.isNotEmpty(daysOfMonth)) {
+                dayOfMonth = getPastFieldValue(RangerValiditySchedule.ScheduleFieldSpec.dayOfMonth, daysOfMonth, initialDay, maximumDaysInPreviousMonth);
+            } else {
+                dayOfMonth = initialDay;
+            }
 
             boolean borrowForDayOfMonth;
             if (dayOfMonth < RangerValiditySchedule.ScheduleFieldSpec.dayOfMonth.minimum) {
@@ -178,7 +196,12 @@ public class RangerValidityScheduleEvaluator {
             dayOfMonthCalendar.getTime(); // For recomputation
 
             int week = current.get(Calendar.WEEK_OF_YEAR);
-            int dayOfWeek = getPastFieldValue(RangerValiditySchedule.ScheduleFieldSpec.dayOfWeek, daysOfWeek, current.get(Calendar.DAY_OF_WEEK) - (borrow ? 1 : 0));
+
+            if (CollectionUtils.isNotEmpty(daysOfWeek)) {
+                dayOfWeek = getPastFieldValue(RangerValiditySchedule.ScheduleFieldSpec.dayOfWeek, daysOfWeek, current.get(Calendar.DAY_OF_WEEK) - (borrow ? 1 : 0));
+            } else {
+                dayOfWeek = current.get(Calendar.DAY_OF_WEEK) - (borrow ? 1 : 0);
+            }
             boolean borrowForDayOfWeek;
             if (dayOfWeek < RangerValiditySchedule.ScheduleFieldSpec.dayOfWeek.minimum) {
                 dayOfWeek = RangerValiditySchedule.ScheduleFieldSpec.dayOfWeek.maximum - RangerValiditySchedule.ScheduleFieldSpec.dayOfWeek.minimum + 1 + dayOfWeek;
@@ -308,7 +331,9 @@ public class RangerValidityScheduleEvaluator {
         int month = calendar.get(Calendar.MONTH);
         int year = calendar.get(Calendar.YEAR);
 
-        month = getPastFieldValue(RangerValiditySchedule.ScheduleFieldSpec.month, months, month);
+        if (CollectionUtils.isNotEmpty(months)) {
+            month = getPastFieldValue(RangerValiditySchedule.ScheduleFieldSpec.month, months, month);
+        }
         if (month < RangerValiditySchedule.ScheduleFieldSpec.month.minimum) {
             month = RangerValiditySchedule.ScheduleFieldSpec.month.maximum - RangerValiditySchedule.ScheduleFieldSpec.month.minimum + 1 + month;
             borrow = true;
@@ -316,7 +341,9 @@ public class RangerValidityScheduleEvaluator {
             borrow = false;
         }
 
-        year = getPastFieldValue(RangerValiditySchedule.ScheduleFieldSpec.year, years, year - (borrow ? 1 : 0));
+        if (CollectionUtils.isNotEmpty(years)) {
+            year = getPastFieldValue(RangerValiditySchedule.ScheduleFieldSpec.year, years, year - (borrow ? 1 : 0));
+        }
         if (year < RangerValiditySchedule.ScheduleFieldSpec.year.minimum) {
             year = RangerValiditySchedule.ScheduleFieldSpec.year.maximum - RangerValiditySchedule.ScheduleFieldSpec.year.minimum + 1 + year;
         }
@@ -324,6 +351,7 @@ public class RangerValidityScheduleEvaluator {
         ret = (Calendar)calendar.clone();
         ret.set(Calendar.YEAR, year);
         ret.set(Calendar.MONTH, month);
+        ret.set(Calendar.SECOND, 0);
 
         ret.getTime(); // for recomputation
         if (LOG.isDebugEnabled()) {

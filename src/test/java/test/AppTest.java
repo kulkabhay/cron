@@ -1,20 +1,162 @@
 package test;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.lang.reflect.Type;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 /**
- * Unit test for simple App.
+ * Unit tests for chron.
  */
 public class AppTest 
     extends TestCase
 {
+    private static final Log LOG = LogFactory.getLog(AppTest.class);
+
+    class TestResult {
+        boolean isValid;
+        int validationFailureCount;
+        boolean isApplicable;
+    }
+    class TestCase {
+        String name;
+        List<RangerValiditySchedule> validitySchedules;
+        Date accessTime;
+        TestResult result;
+    }
+
+    private static Gson gson;
+
+    static {
+        GsonBuilder builder = new GsonBuilder().setDateFormat("yyyyMMdd-HH:mm:ss.SSSZ");
+        gson = builder
+                .setPrettyPrinting()
+                .create();
+    }
+    private List<TestCase> getTestCases(String fileName) {
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("==> init()" );
+        }
+
+        List<TestCase> ret = null;
+        Reader reader = null;
+        URL testCasesURL = null;
+
+        try {
+            testCasesURL = getInputFileURL(fileName);
+            InputStream in = testCasesURL.openStream();
+            reader = new InputStreamReader(in, Charset.forName("UTF-8"));
+            Type listType = new TypeToken<List<TestCase>>() {
+            }.getType();
+            ret = gson.fromJson(reader, listType);
+        }
+        catch (Exception excp) {
+            LOG.error("Error opening request data stream or loading load request data from file, URL=" + testCasesURL, excp);
+        }
+        finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (Exception excp) {
+                    LOG.error("Error closing file ", excp);
+                }
+            }
+        }
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("<== init() : " + ret );
+        }
+        return ret;
+    }
+
+    private static URL getInputFileURL(final String name) {
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("==> getInputFileURL(" + name + ")");
+        }
+        URL ret = null;
+        InputStream in = null;
+
+
+        if (StringUtils.isNotBlank(name)) {
+
+            File f = new File(name);
+
+            if (f.exists() && f.isFile() && f.canRead()) {
+                try {
+
+                    in = new FileInputStream(f);
+                    ret = f.toURI().toURL();
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("URL:" + ret);
+                    }
+
+                } catch (FileNotFoundException exception) {
+                    LOG.error("Error processing input file:" + name + " or no privilege for reading file " + name, exception);
+                } catch (MalformedURLException malformedException) {
+                    LOG.error("Error processing input file:" + name + " cannot be converted to URL " + name, malformedException);
+                }
+            } else {
+
+                URL fileURL = App.class.getResource(name);
+                if (fileURL == null) {
+                    if (!name.startsWith("/")) {
+                        fileURL = App.class.getResource("/" + name);
+                    }
+                }
+
+                if (fileURL == null) {
+                    fileURL = ClassLoader.getSystemClassLoader().getResource(name);
+                    if (fileURL == null) {
+                        if (!name.startsWith("/")) {
+                            fileURL = ClassLoader.getSystemClassLoader().getResource("/" + name);
+                        }
+                    }
+                }
+
+                if (fileURL != null) {
+                    try {
+                        in = fileURL.openStream();
+                        ret = fileURL;
+                    } catch (Exception exception) {
+                        LOG.error(name + " cannot be opened:", exception);
+                    }
+                } else {
+                    LOG.warn("Error processing input file: URL not found for " + name + " or no privilege for reading file " + name);
+                }
+            }
+        }
+        if (in != null) {
+            try {
+                in.close();
+            } catch (Exception e) {
+                // Ignore
+            }
+        }
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("<== getInputFileURL(" + name + ", URL=" + ret + ")");
+        }
+        return ret;
+    }
     /**
      * Create the test case
      *
@@ -33,82 +175,59 @@ public class AppTest
         return new TestSuite( AppTest.class );
     }
 
-    public void testReadValiditySchedules()
+    public void testRangerValiditySchedulesForFailures() {
+        readAndRunTests("/validity-schedules-invalid.json");
+    }
+    public void testRangerValiditySchedulesForValidity() {
+        readAndRunTests("/validity-schedules-valid.json");
+    }
+    public void testRangerValiditySchedulesForApplicability() {
+        readAndRunTests("/validity-schedules-valid-and-applicable.json");
+    }
+
+    private void readAndRunTests(String testFileName)
     {
-        List<RangerValiditySchedule> validitySchedules = new App().getValiditySchedules("/validity-schedules.json");
+        List<TestCase> testCases = getTestCases(testFileName);
 
-        if (CollectionUtils.isNotEmpty(validitySchedules)) {
-            System.out.println();
-            for (RangerValiditySchedule entry : validitySchedules) {
-                System.out.println(entry);
-            }
-            System.out.println();
-        }
-        assertTrue(CollectionUtils.isNotEmpty(validitySchedules));
-    }
-
-    public void testValidateValiditySchedule() {
-        List<RangerValiditySchedule> validitySchedules = new App().getValiditySchedules("/validity-schedules-valid.json");
-        if (CollectionUtils.isNotEmpty(validitySchedules)) {
-            for (RangerValiditySchedule entry : validitySchedules) {
-                System.out.println(entry);
-
+        if (CollectionUtils.isNotEmpty(testCases)) {
+            for (TestCase testCase : testCases) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Running testCase:[" + testCase.name + "]");
+                }
+                boolean isValid = true;
                 List<ValidationFailureDetails> validationFailures = new ArrayList<>();
-                RangerValidityScheduleValidator validator = new RangerValidityScheduleValidator(entry);
-                RangerValiditySchedule normalizedValiditySchedule = validator.validate(RangerValidityScheduleValidator.Action.CREATE, validationFailures);
-                if (normalizedValiditySchedule == null) {
-                    for (ValidationFailureDetails failure : validationFailures) {
-                        System.out.println(failure);
+                boolean isApplicable = false;
+
+                List<RangerValiditySchedule> validatedSchedules = new ArrayList<>();
+
+                for (RangerValiditySchedule validitySchedule : testCase.validitySchedules) {
+                    RangerValidityScheduleValidator validator = new RangerValidityScheduleValidator(validitySchedule);
+                    RangerValiditySchedule validatedSchedule = validator.validate(RangerValidityScheduleValidator.Action.CREATE, validationFailures);
+                    isValid = isValid && validatedSchedule != null;
+                    if (isValid) {
+                        validatedSchedules.add(validatedSchedule);
                     }
                 }
-                System.out.println("Normalized-Ranger-Validity-Schedule=" + normalizedValiditySchedule);
-                assert(normalizedValiditySchedule != null && validationFailures.isEmpty());
-            }
-        }
-    }
-
-    public void testValidateValidityScheduleForFailures() {
-        List<RangerValiditySchedule> validitySchedules = new App().getValiditySchedules("/validity-schedules-invalid.json");
-        if (CollectionUtils.isNotEmpty(validitySchedules)) {
-            for (RangerValiditySchedule entry : validitySchedules) {
-                System.out.println(entry);
-
-                List<ValidationFailureDetails> validationFailures = new ArrayList<>();
-                RangerValidityScheduleValidator validator = new RangerValidityScheduleValidator(entry);
-                RangerValiditySchedule normalizedValiditySchedule = validator.validate(RangerValidityScheduleValidator.Action.CREATE, validationFailures);
-                if (normalizedValiditySchedule == null) {
-                    for (ValidationFailureDetails failure : validationFailures) {
-                        System.out.println(failure);
+                if (isValid) {
+                    for (RangerValiditySchedule validSchedule : validatedSchedules) {
+                        isApplicable = new RangerValidityScheduleEvaluator(validSchedule).isApplicable(testCase.accessTime.getTime());
+                        if (isApplicable) {
+                            break;
+                        }
                     }
                 }
-                System.out.println("Normalized-Ranger-Validity-Schedule=" + normalizedValiditySchedule);
-                assert(normalizedValiditySchedule == null && !validationFailures.isEmpty());
-            }
-        }
-    }
-
-    public void testScheduleApplicability() {
-        List<RangerValiditySchedule> validitySchedules = new App().getValiditySchedules("/validity-schedules-valid-and-applicable.json");
-        boolean foundAnApplicableSchedule = false;
-        for (RangerValiditySchedule entry : validitySchedules) {
-            System.out.println(entry);
-            List<ValidationFailureDetails> validationFailures = new ArrayList<>();
-            RangerValidityScheduleValidator validator = new RangerValidityScheduleValidator(entry);
-
-            RangerValiditySchedule normalizedValiditySchedule = validator.validate(RangerValidityScheduleValidator.Action.UPDATE, validationFailures);
-
-            if (normalizedValiditySchedule != null) {
-                boolean matched = new RangerValidityScheduleEvaluator(normalizedValiditySchedule).isApplicable(new Date().getTime());
-                if (matched) {
-                    System.out.println("Matched: Ranger-Validity-Schedule=" + normalizedValiditySchedule);
-                    foundAnApplicableSchedule = true;
-                } else {
-                    System.out.println("Not Matched: Ranger-Validity-Schedule=" + normalizedValiditySchedule);
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("validationFailureDetails:" + validationFailures);
                 }
-            } else {
-                System.out.println("Invalid: Ranger-Validity-Schedule=" + entry);
+
+                assertTrue(isValid == testCase.result.isValid);
+                assertTrue(isApplicable == testCase.result.isApplicable);
+                assertTrue(validationFailures.size() == testCase.result.validationFailureCount);
+
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Completed testCase:[" + testCase.name + "]");
+                }
             }
         }
-        assert(foundAnApplicableSchedule);
     }
 }

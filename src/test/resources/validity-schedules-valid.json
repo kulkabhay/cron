@@ -1,36 +1,80 @@
 [
   {
-    "minute":"59, 15, 30",
-    "hour":"*, 0,20, 21",
-    "dayOfMonth":"1-14, 21, 31",
-    "dayOfWeek":"1,4, 6",
-    "month":"1, 11",
-    "year":"2018",
-    "startTime":"20180112-14:32:27.000-0800",
-    "endTime":"20200112-14:32:27.000-0800",
-    "validityInterval":{
-      "minutes":10
+    "name": "AccessTime before startTime",
+    "validitySchedules": [
+      {
+        "startTime":"20180112-14:32:27.000-0800",
+        "endTime":"20200112-14:32:27.000-0800"
+      }
+    ],
+    "accessTime": "20170112-14:32:27.000-0800",
+    "result": {
+      "isValid": true,
+      "isApplicable": false,
+      "validationFailureCount": 0
     }
   },
   {
-    "minute":"59, 15, 1,14",
-    "hour":"*, 0,20, 21",
-    "dayOfMonth":"1-14, 21, 31",
-    "dayOfWeek":"1,4, 6",
-    "month":"1, 11",
-    "year":"2018",
-    "startTime":"20180112-14:32:27.000-0800",
-    "endTime":"20180202-14:32:27.000-0800",
-    "interval": {
-      "minutes":0
+    "name": "AccessTime after endTime",
+    "validitySchedules": [
+      {
+        "startTime":"20180112-14:32:27.000-0800",
+        "endTime":"20180212-14:32:27.000-0800"
+      }
+    ],
+    "accessTime": "20180312-14:32:27.000-0800",
+    "result": {
+      "isValid": true,
+      "isApplicable": false,
+      "validationFailureCount": 0
     }
   },
   {
-    "startTime":"20180112-14:32:27.000-0800",
-    "endTime":"20200112-14:32:27.000-0800"
+    "name": "Not applicable for minute field",
+    "validitySchedules": [
+      {
+        "minute": "59, 15, 30",
+        "hour": "*",
+        "dayOfMonth": "*",
+        "dayOfWeek": "*",
+        "month": "*",
+        "year": "2018-2020",
+        "startTime": "20180112-14:32:27.000-0800",
+        "endTime": "20200112-14:32:27.000-0800",
+        "validityInterval": {
+          "minutes": 10
+        }
+      }
+    ],
+    "accessTime": "20180212-14:26:00.000-0800",
+    "result": {
+      "isValid": true,
+      "isApplicable": false,
+      "validationFailureCount": 0
+    }
   },
   {
-    "startTime":"20180112-14:32:27.000-0800",
-    "endTime":"20200112-14:32:27.000-0800"
+    "name": "Not applicable as accessTime earlier than startTime",
+    "validitySchedules": [
+      {
+        "minute":"3",
+        "hour":"10, 21",
+        "dayOfMonth":"*",
+        "dayOfWeek":"*",
+        "month":"*",
+        "year":"2018-2020",
+        "startTime":"20180112-14:32:27.000-0800",
+        "endTime":"20200112-14:32:27.000-0800",
+        "validityInterval":{
+          "hours":2
+        }
+      }
+    ],
+    "accessTime": "20170112-14:26:27.000-0800",
+    "result": {
+      "isValid": true,
+      "isApplicable": false,
+      "validationFailureCount": 0
+    }
   }
 ]

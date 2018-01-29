@@ -1,41 +1,163 @@
 [
   {
-  }
-  ,
-  {
-    "minute":"",
-    "hour":"",
-    "dayOfMonth":"",
-    "dayOfWeek":"",
-    "month":"",
-    "year":"",
-    "startTime":"20180112-14:32:27.000-0800",
-    "endTime":"20180123-06:30:00.000-0000",
-    "validityInterval": {
-      "days":-1,
-      "hours":24,
-      "minutes":60
+    "name": "Empty validity-schedule",
+    "validitySchedules": [
+      {}
+    ],
+    "accessTime": "20180112-14:32:27.000-0800",
+    "result": {
+      "isValid": false,
+      "isApplicable": false,
+      "validationFailureCount": 1
     }
   },
   {
-    "minute":"45, 30, 1, 14",
-    "hour":"*, 0,20, 21",
-    "dayOfMonth":"1-14, 15,31",
-    "dayOfWeek":"0,4, 6",
-    "month":"11, 0-1",
-    "year":"2018",
-    "startTime":"20180112-14:32:27.000-0800",
-    "endTime":"20180123-06:30:00.000-0000"
+    "name": "Invalid characters in validity-schedule",
+    "validitySchedules": [
+      {
+        "minute": "MINUTE",
+        "hour": "HOUR",
+        "dayOfMonth": "DAYOFMONTH",
+        "dayOfWeek": "DAYOFWEEK",
+        "month": "MONTH",
+        "year": "YEAR",
+        "startTime": "20180112-14:32:27.000-0800",
+        "endTime": "20200112-17:19:07.000-0800",
+        "validityInterval": {
+          "days": 10,
+          "hours": 5,
+          "minutes": 5
+        }
+      }
+    ],
+    "accessTime": "20180112-14:32:27.000-0800",
+    "result": {
+      "isValid": false,
+      "isApplicable": false,
+      "validationFailureCount": 6
+    }
   },
   {
-    "minute":"1,10,5",
-    "hour":"0-3, 4-5, 9-8,20, 21",
-    "dayOfMonth":"1-14, 15,31",
-    "dayOfWeek":"0,4, 6",
-    "month":"11, 0-1",
-    "year":"2018",
-    "startTime":"20180112-14:32:27.000-0800",
-    "endTime":"20180122-22:30:00.000-0800",
-    "validityInterval": {}
+    "name": "validity-interval longer than minimum diff in schedule",
+    "validitySchedules": [
+      {
+        "minute": "",
+        "hour": "",
+        "dayOfMonth": "",
+        "dayOfWeek": "*",
+        "month": "",
+        "year": "",
+        "startTime": "20180112-14:32:27.000-0800",
+        "endTime": "20200123-06:30:00.000-0000",
+        "validityInterval": {
+          "days": 1,
+          "hours": 23,
+          "minutes": 59
+        }
+      }
+    ],
+    "accessTime": "20180112-14:32:27.000-0800",
+    "result": {
+      "isValid": false,
+      "isApplicable": false,
+      "validationFailureCount": 1
+    }
+  },
+  {
+    "name": "Invalid characters in fields in validity-schedule",
+    "validitySchedules": [
+      {
+        "minute": "*",
+        "hour": "@",
+        "dayOfMonth": "!",
+        "dayOfWeek": "#",
+        "month": "%",
+        "year": "^&()",
+        "startTime": "20180112-14:32:27.000-0800",
+        "endTime": "20200123-06:30:00.000-0000",
+        "validityInterval": {
+          "days": 1,
+          "hours": 23,
+          "minutes": 59
+        }
+      }
+    ],
+    "accessTime": "20180112-14:32:27.000-0800",
+    "result": {
+      "isValid": false,
+      "isApplicable": false,
+      "validationFailureCount": 6
+    }
+  },
+  {
+    "name": "Incorrect validityInterval",
+    "validitySchedules": [
+      {
+        "minute": "10",
+        "hour": "*",
+        "dayOfMonth": "*",
+        "dayOfWeek": "*",
+        "month": "*",
+        "year": "2018",
+        "startTime": "20180112-14:32:27.000-0800",
+        "endTime": "20200123-06:30:00.000-0000",
+        "validityInterval": {
+          "days": -1,
+          "hours": 24,
+          "minutes": 60
+        }
+      }
+    ],
+    "accessTime": "20180112-14:32:27.000-0800",
+    "result": {
+      "isValid": false,
+      "isApplicable": false,
+      "validationFailureCount": 1
+    }
+  },
+  {
+    "name": "endTime earlier than startTime",
+    "validitySchedules": [
+      {
+        "minute": "45, 30, 1, 14",
+        "hour": "*, 0,20, 21",
+        "dayOfMonth": "1-14, 15,31",
+        "dayOfWeek": "0,4, 6",
+        "month": "11, 0-1",
+        "year": "2018",
+        "startTime": "20180112-14:32:27.000-0800",
+        "endTime": "20180123-06:30:00.000-0000"
+      }
+    ],
+    "accessTime": "20180112-14:32:27.000-0800",
+    "result": {
+      "isValid": false,
+      "isApplicable": false,
+      "validationFailureCount": 1
+    }
+  },
+  {
+    "name": "Overlapping ranges, incorrect range, invalid field value in validity-schedule",
+    "validitySchedules": [
+      {
+        "minute": "1,10,5",
+        "hour": "0-3, 1-4, 9-8,20, 21",
+        "dayOfMonth": "1-14, 15,31",
+        "dayOfWeek": "0,4, 6",
+        "month": "11, 0-1",
+        "year": "2018",
+        "startTime": "20180112-14:32:27.000-0800",
+        "endTime": "20200122-22:30:00.000-0800",
+        "validityInterval": {
+          "minutes": 10
+        }
+      }
+    ],
+    "accessTime": "20180112-14:32:27.000-0800",
+    "result": {
+      "isValid": false,
+      "isApplicable": false,
+      "validationFailureCount": 3
+    }
   }
 ]
