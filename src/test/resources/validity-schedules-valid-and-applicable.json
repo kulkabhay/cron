@@ -71,5 +71,31 @@
       "isApplicable": true,
       "validationFailureCount": 0
     }
+  },
+  {
+    "name": "Applicable every Wednesday or Saturday or 1st of month starting at 59 minutes past accessTime hour PST for 1 day and 2 minutes",
+    "validitySchedules": [
+      {
+        "minute": "59",
+        "hour": "",
+        "dayOfMonth": "1",
+        "dayOfWeek": "4, 7",
+        "month": "*",
+        "year": "2017-2018",
+        "startTime": "20170112-14:32:27.000-0800",
+        "endTime": "20180203-12:16:40.000-0800",
+        "validityInterval": {
+          "days" : 1,
+          "minutes": 2
+        }
+      }
+    ],
+    "accessTime": "20180101-00:00:00.000-0800",
+    "result": {
+      "isValid": true,
+      "isApplicable": true,
+      "validationFailureCount": 0
+    }
   }
+
 ]
