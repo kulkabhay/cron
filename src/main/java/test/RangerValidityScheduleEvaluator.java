@@ -154,7 +154,7 @@ public class RangerValidityScheduleEvaluator {
 
         @Override
         public String toString() {
-            return new String("value=" + value + ", borrow=" + borrow);
+            return "value=" + value + ", borrow=" + borrow;
         }
     }
 
@@ -197,6 +197,7 @@ public class RangerValidityScheduleEvaluator {
                     }
                 } else {
                     LOG.error("Should not get here, initialDayOfMonth:[" + initialDayOfMonth +"], previousDayOfMonth:[" + previousDayOfMonth + "]");
+                    throw new Exception("Should not get here, initialDayOfMonth:[" + initialDayOfMonth +"], previousDayOfMonth:[" + previousDayOfMonth + "]");
                 }
             }
             if (LOG.isDebugEnabled()) {
@@ -219,7 +220,9 @@ public class RangerValidityScheduleEvaluator {
             dayOfMonthCalendar.set(Calendar.MINUTE, closestMinute.value);
             dayOfMonthCalendar.getTime(); // For recomputation
 
-            LOG.info("Best guess using DAY_OF_MONTH:[" + dayOfMonthCalendar.getTime() + "]");
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Best guess using DAY_OF_MONTH:[" + dayOfMonthCalendar.getTime() + "]");
+            }
 
             input.setValue(current.get(Calendar.DAY_OF_WEEK));
             input.setBorrow(closestHour.borrow);
@@ -267,15 +270,15 @@ public class RangerValidityScheduleEvaluator {
 
     private Calendar getEarlierCalendar(Calendar dayOfMonthCalendar, Calendar dayOfWeekCalendar) throws Exception {
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("dayOfMonthCalendar:[" + dayOfMonthCalendar.getTime() + "]");
-        }
         Calendar withDayOfMonth = fillOutCalendar(dayOfMonthCalendar);
-
         if (LOG.isDebugEnabled()) {
-            LOG.debug("dayOfWeekCalendar:[" + dayOfWeekCalendar.getTime() + "]");
+            LOG.debug("dayOfMonthCalendar:[" + withDayOfMonth.getTime() + "]");
         }
+
         Calendar withDayOfWeek = fillOutCalendar(dayOfWeekCalendar);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("dayOfWeekCalendar:[" + withDayOfWeek.getTime() + "]");
+        }
 
         return withDayOfMonth.after(withDayOfWeek) ? withDayOfMonth : withDayOfWeek;
     }
