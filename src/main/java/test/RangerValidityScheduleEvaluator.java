@@ -185,7 +185,7 @@ public class RangerValidityScheduleEvaluator {
                 int previousDayOfMonth = dayOfMonthCalc.get(Calendar.DAY_OF_MONTH);
                 if (initialDayOfMonth < previousDayOfMonth) {
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug("Need to borrow from previous month, initialDayOfMonth:[" + initialDayOfMonth +"], previousDayOfMonth:[" + previousDayOfMonth + "], dayOfMonthCalc:[" + dayOfMonthCalc.getTime() +"]" );
+                        LOG.debug("Need to borrow from previous month, initialDayOfMonth:[" + initialDayOfMonth + "], previousDayOfMonth:[" + previousDayOfMonth + "], dayOfMonthCalc:[" + dayOfMonthCalc.getTime() + "]");
                     }
                     currentDayOfMonth = previousDayOfMonth;
                     currentMonth = dayOfMonthCalc.get(Calendar.MONTH);
@@ -193,11 +193,11 @@ public class RangerValidityScheduleEvaluator {
                     maximumDaysInPreviousMonth = getMaximumValForPreviousMonth(dayOfMonthCalc);
                 } else if (initialDayOfMonth == previousDayOfMonth) {
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug("No need to borrow from previous month, initialDayOfMonth:[" + initialDayOfMonth +"], previousDayOfMonth:[" + previousDayOfMonth + "]");
+                        LOG.debug("No need to borrow from previous month, initialDayOfMonth:[" + initialDayOfMonth + "], previousDayOfMonth:[" + previousDayOfMonth + "]");
                     }
                 } else {
-                    LOG.error("Should not get here, initialDayOfMonth:[" + initialDayOfMonth +"], previousDayOfMonth:[" + previousDayOfMonth + "]");
-                    throw new Exception("Should not get here, initialDayOfMonth:[" + initialDayOfMonth +"], previousDayOfMonth:[" + previousDayOfMonth + "]");
+                    LOG.error("Should not get here, initialDayOfMonth:[" + initialDayOfMonth + "], previousDayOfMonth:[" + previousDayOfMonth + "]");
+                    throw new Exception("Should not get here, initialDayOfMonth:[" + initialDayOfMonth + "], previousDayOfMonth:[" + previousDayOfMonth + "]");
                 }
             }
             if (LOG.isDebugEnabled()) {
@@ -206,18 +206,41 @@ public class RangerValidityScheduleEvaluator {
 
             input.setValue(currentDayOfMonth);
             input.setBorrow(false);
-            ValueWithBorrow closestDayOfMonth = getPastFieldValueWithBorrow(RangerValiditySchedule.ScheduleFieldSpec.dayOfMonth, daysOfMonth, input, maximumDaysInPreviousMonth);
+            ValueWithBorrow closestDayOfMonth = null;
+            do {
+                int i = 0;
+                try {
+                    closestDayOfMonth = getPastFieldValueWithBorrow(RangerValiditySchedule.ScheduleFieldSpec.dayOfMonth, daysOfMonth, input, maximumDaysInPreviousMonth);
+                } catch (Exception e) {
+                    i++;
+                    Calendar c = (GregorianCalendar) current.clone();
+                    c.set(Calendar.YEAR, currentYear);
+                    c.set(Calendar.MONTH, currentMonth);
+                    c.set(Calendar.DAY_OF_MONTH, currentDayOfMonth);
+                    c.add(Calendar.MONTH, -i);
+                    c.getTime();
+                    currentMonth = c.get(Calendar.MONTH);
+                    currentYear = c.get(Calendar.YEAR);
+                    currentDayOfMonth = c.get(Calendar.DAY_OF_MONTH);
+                    maximumDaysInPreviousMonth = getMaximumValForPreviousMonth(c);
+                    input.setValue(currentDayOfMonth);
+                    input.setBorrow(false);
+                }
+            } while (closestDayOfMonth == null);
 
             // Build calendar for dayOfMonth
             Calendar dayOfMonthCalendar = new GregorianCalendar();
             dayOfMonthCalendar.set(Calendar.DAY_OF_MONTH, closestDayOfMonth.value);
-            dayOfMonthCalendar.set(Calendar.MONTH, currentMonth);
-            dayOfMonthCalendar.set(Calendar.YEAR, currentYear);
-            if (closestDayOfMonth.borrow) {
-                dayOfMonthCalendar.add(Calendar.MONTH, -1);
-            }
             dayOfMonthCalendar.set(Calendar.HOUR_OF_DAY, closestHour.value);
             dayOfMonthCalendar.set(Calendar.MINUTE, closestMinute.value);
+
+            dayOfMonthCalendar.set(Calendar.YEAR, currentYear);
+
+            if (closestDayOfMonth.borrow) {
+                dayOfMonthCalendar.add(Calendar.MONTH, currentMonth - 1);
+            } else {
+                dayOfMonthCalendar.set(Calendar.MONTH, currentMonth);
+            }
             dayOfMonthCalendar.getTime(); // For recomputation
 
             if (LOG.isDebugEnabled()) {
@@ -237,10 +260,10 @@ public class RangerValidityScheduleEvaluator {
                 LOG.debug("Need to go back [" + daysToGoback + "] days to match dayOfWeek");
             }
 
-            Calendar dayOfWeekCalendar =  (GregorianCalendar)current.clone();
+            Calendar dayOfWeekCalendar = (GregorianCalendar) current.clone();
             dayOfWeekCalendar.set(Calendar.MINUTE, closestMinute.value);
             dayOfWeekCalendar.set(Calendar.HOUR_OF_DAY, closestHour.value);
-            dayOfWeekCalendar.add(Calendar.DAY_OF_MONTH, (0-daysToGoback));
+            dayOfWeekCalendar.add(Calendar.DAY_OF_MONTH, (0 - daysToGoback));
 
             dayOfWeekCalendar.getTime();
 

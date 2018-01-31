@@ -96,6 +96,30 @@
       "isApplicable": true,
       "validationFailureCount": 0
     }
+  },
+  {
+    "name": "Applicable every 31st of month starting at noon Zulu for 1 day, starting from 1/1/18",
+    "validitySchedules": [
+      {
+        "minute": "0",
+        "hour": "12",
+        "dayOfMonth": "31",
+        "dayOfWeek": "*",
+        "month": "*",
+        "year": "2017-2018",
+        "startTime": "20180101-00:00:00.000-0000",
+        "endTime": "20500203-12:16:40.000-0800",
+        "validityInterval": {
+          "days" : 1
+        }
+      }
+    ],
+    "accessTime": "20180301-00:00:00.000-0800",
+    "result": {
+      "isValid": true,
+      "isApplicable": true,
+      "validationFailureCount": 0
+    }
   }
 
 ]
