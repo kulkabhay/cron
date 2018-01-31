@@ -134,8 +134,10 @@ public class RangerValidityScheduleEvaluator {
     */
 
     private class ValueWithBorrow {
-        final int value;
-        final boolean borrow;
+        int value;
+        boolean borrow;
+
+        ValueWithBorrow() {}
 
         ValueWithBorrow(int value) {
             this(value, false);
@@ -145,16 +147,29 @@ public class RangerValidityScheduleEvaluator {
             this.value = value;
             this.borrow = borrow;
         }
+        void setValue(int value) { this.value = value;}
+        void setBorrow(boolean borrow) { this.borrow = borrow; }
+        int getValue() { return value;}
+        boolean getBorrow() { return borrow;}
+
+        @Override
+        public String toString() {
+            return new String("value=" + value + ", borrow=" + borrow);
+        }
     }
+
     private Calendar getClosestPastEpoch(Calendar current) {
         Calendar ret = null;
 
         try {
-            ValueWithBorrow input = new ValueWithBorrow(current.get(Calendar.MINUTE));
+            ValueWithBorrow input = new ValueWithBorrow();
 
+            input.setValue(current.get(Calendar.MINUTE));
+            input.setBorrow(false);
             ValueWithBorrow closestMinute = getPastFieldValueWithBorrow(RangerValiditySchedule.ScheduleFieldSpec.minute, minutes, input);
 
-            input = new ValueWithBorrow(current.get(Calendar.HOUR_OF_DAY), closestMinute.borrow);
+            input.setValue(current.get(Calendar.HOUR_OF_DAY));
+            input.setBorrow(closestMinute.borrow);
             ValueWithBorrow closestHour = getPastFieldValueWithBorrow(RangerValiditySchedule.ScheduleFieldSpec.hour, hours, input);
 
             int initialDayOfMonth = current.get(Calendar.DAY_OF_MONTH);
@@ -188,7 +203,8 @@ public class RangerValidityScheduleEvaluator {
                 LOG.debug("currentDayOfMonth:[" + currentDayOfMonth + "], maximumDaysInPreviourMonth:[" + maximumDaysInPreviousMonth + "]");
             }
 
-            input = new ValueWithBorrow(currentDayOfMonth);
+            input.setValue(currentDayOfMonth);
+            input.setBorrow(false);
             ValueWithBorrow closestDayOfMonth = getPastFieldValueWithBorrow(RangerValiditySchedule.ScheduleFieldSpec.dayOfMonth, daysOfMonth, input, maximumDaysInPreviousMonth);
 
             // Build calendar for dayOfMonth
@@ -205,7 +221,8 @@ public class RangerValidityScheduleEvaluator {
 
             LOG.info("Best guess using DAY_OF_MONTH:[" + dayOfMonthCalendar.getTime() + "]");
 
-            input = new ValueWithBorrow(current.get(Calendar.DAY_OF_WEEK), closestHour.borrow);
+            input.setValue(current.get(Calendar.DAY_OF_WEEK));
+            input.setBorrow(closestHour.borrow);
             ValueWithBorrow closestDayOfWeek = getPastFieldValueWithBorrow(RangerValiditySchedule.ScheduleFieldSpec.dayOfWeek, daysOfWeek, input);
 
             int daysToGoback = closestHour.borrow ? 0 : 1;
@@ -269,7 +286,8 @@ public class RangerValidityScheduleEvaluator {
         ValueWithBorrow input = new ValueWithBorrow(calendar.get(Calendar.MONTH));
         ValueWithBorrow closestMonth = getPastFieldValueWithBorrow(RangerValiditySchedule.ScheduleFieldSpec.month, months, input);
 
-        input = new ValueWithBorrow(calendar.get(Calendar.YEAR), closestMonth.borrow);
+        input.setValue(calendar.get(Calendar.YEAR));
+        input.setBorrow(closestMonth.borrow);
         ValueWithBorrow closestYear = getPastFieldValueWithBorrow(RangerValiditySchedule.ScheduleFieldSpec.year, years, input);
 
         // Build calendar
@@ -319,7 +337,7 @@ public class RangerValidityScheduleEvaluator {
                 }
             }
             // Not found
-            throw new Exception("No match found in field:[" + fieldSpec + "] for [value=" + input.value + ", borrow=" + input.borrow + "]");
+            throw new Exception("No match found in field:[" + fieldSpec + "] for [input=" + input + "]");
         } else {
             ret = new ValueWithBorrow(value, borrow);
         }
