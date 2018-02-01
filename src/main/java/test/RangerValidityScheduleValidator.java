@@ -48,27 +48,23 @@ public class RangerValidityScheduleValidator {
         if (ret) {
             ret = false;
 
-            if (validitySchedule.getValidityIntervalInMinutes() < 0) {
-                validationFailures.add(new ValidationFailureDetails(0, "interval", "", false, true, false, "interval less than 0"));
-            } else {
-                long currentTime = new Date().getTime();
+            long currentTime = new Date().getTime();
 
-                if (validitySchedule.getStartTime() == null || validitySchedule.getStartTime().getTime() >= validitySchedule.getEndTime().getTime()) {
-                    validationFailures.add(new ValidationFailureDetails(0, "startTime", "", false, true, false, "startTime later than endTime"));
-                } else if (validitySchedule.getEndTime() == null || action == Action.CREATE && validitySchedule.getEndTime().getTime() <= currentTime) {
-                    validationFailures.add(new ValidationFailureDetails(0, "endTime", "", false, true, false, "endTime earlier than current time"));
+            if (validitySchedule.getStartTime() == null || validitySchedule.getStartTime().getTime() >= validitySchedule.getEndTime().getTime()) {
+                validationFailures.add(new ValidationFailureDetails(0, "startTime", "", false, true, false, "startTime later than endTime"));
+            } else if (validitySchedule.getEndTime() == null || action == Action.CREATE && validitySchedule.getEndTime().getTime() <= currentTime) {
+                validationFailures.add(new ValidationFailureDetails(0, "endTime", "", false, true, false, "endTime earlier than current time"));
+            } else {
+                if (validitySchedule.getValidityIntervalInMinutes() > 0) {
+                    ret = validateFieldSpec(RangerValiditySchedule.ScheduleFieldSpec.minute, validationFailures);
+                    ret = validateFieldSpec(RangerValiditySchedule.ScheduleFieldSpec.hour, validationFailures) && ret;
+                    ret = validateFieldSpec(RangerValiditySchedule.ScheduleFieldSpec.dayOfMonth, validationFailures) && ret;
+                    ret = validateFieldSpec(RangerValiditySchedule.ScheduleFieldSpec.dayOfWeek, validationFailures) && ret;
+                    ret = validateFieldSpec(RangerValiditySchedule.ScheduleFieldSpec.month, validationFailures) && ret;
+                    ret = validateFieldSpec(RangerValiditySchedule.ScheduleFieldSpec.year, validationFailures) && ret;
+                    ret = ret && validateIntervalDuration(validationFailures);
                 } else {
-                    if (validitySchedule.getValidityIntervalInMinutes() > 0) {
-                        ret = validateFieldSpec(RangerValiditySchedule.ScheduleFieldSpec.minute, validationFailures);
-                        ret = validateFieldSpec(RangerValiditySchedule.ScheduleFieldSpec.hour, validationFailures) && ret;
-                        ret = validateFieldSpec(RangerValiditySchedule.ScheduleFieldSpec.dayOfMonth, validationFailures) && ret;
-                        ret = validateFieldSpec(RangerValiditySchedule.ScheduleFieldSpec.dayOfWeek, validationFailures) && ret;
-                        ret = validateFieldSpec(RangerValiditySchedule.ScheduleFieldSpec.month, validationFailures) && ret;
-                        ret = validateFieldSpec(RangerValiditySchedule.ScheduleFieldSpec.year, validationFailures) && ret;
-                        ret = ret && validateIntervalDuration(validationFailures);
-                    } else {
-                        ret = true;
-                    }
+                    ret = true;
                 }
             }
         }
@@ -97,23 +93,29 @@ public class RangerValidityScheduleValidator {
         }
         int validityIntervalInMinutes = validitySchedule.getValidityIntervalInMinutes();
         if (validityIntervalInMinutes > 0) {
-            if (StringUtils.isBlank(validitySchedule.getMinute()) && StringUtils.isBlank(validitySchedule.getHour())
-                    && StringUtils.isBlank(validitySchedule.getDayOfMonth()) && StringUtils.isBlank(validitySchedule.getDayOfWeek())
-                    && StringUtils.isBlank(validitySchedule.getMonth()) && StringUtils.isBlank(validitySchedule.getYear())) {
-                validationFailures.add(new ValidationFailureDetails(0, "validitySchedule", "", false, true, false, "empty validitySchedule"));
+            if (StringUtils.isBlank(validitySchedule.getDayOfMonth()) && StringUtils.isBlank(validitySchedule.getDayOfWeek())) {
+                validationFailures.add(new ValidationFailureDetails(0, "validitySchedule", "", false, true, false, "empty dayOfMonth and dayOfWeek"));
                 ret = false;
             }
         }
         return ret;
     }
 
-        private boolean validateFieldSpec(RangerValiditySchedule.ScheduleFieldSpec field, List<ValidationFailureDetails> validationFailures) {
+    private boolean validateFieldSpec(RangerValiditySchedule.ScheduleFieldSpec field, List<ValidationFailureDetails> validationFailures) {
         boolean ret = true;
 
         String fieldValue = validitySchedule.getFieldValue(field);
         if (StringUtils.isBlank(fieldValue)) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("No value provided for [" + field + "]");
+            }
+            if (StringUtils.equals(field.name(), RangerValiditySchedule.ScheduleFieldSpec.dayOfWeek.name())
+                    || StringUtils.equals(field.name(), RangerValiditySchedule.ScheduleFieldSpec.dayOfMonth.name())) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Allow blank value for dayOfWeek or dayOfMonth here. Check for both being null is done elsewhere.");
+                }
+            } else {
+                validationFailures.add(new ValidationFailureDetails(0, field.toString(), "", false, true, false, "No value provided"));
             }
         }
         ret = validateCharacters(fieldValue, field.specialChars);
@@ -189,9 +191,10 @@ public class RangerValidityScheduleValidator {
                 }
             }
             if (validitySchedule.getValidityIntervalInMinutes() > minSchedulingInterval) {
-                validationFailures.add(new ValidationFailureDetails(0, "interval", "", false, true, false, "interval longer than specified interval"));
-
-                ret = false;
+                if (LOG.isDebugEnabled()) {
+                    LOG.warn("Specified scheduling interval:" + validitySchedule.getValidityIntervalInMinutes() + " minutes] is more than minimum possible scheduling interval:[" + minSchedulingInterval + " minutes].");
+                    LOG.warn("This may turn this (expected to be temporary) policy into effectively permanent policy.");
+                }
             }
         }
         return ret;

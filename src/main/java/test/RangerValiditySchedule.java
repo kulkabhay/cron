@@ -25,7 +25,7 @@ public class RangerValiditySchedule {
         dayOfMonth(1, 31, PERMITTED_SPECIAL_CHARACTERS),
         dayOfWeek(1, 7, PERMITTED_SPECIAL_CHARACTERS),
         month(0, 11, PERMITTED_SPECIAL_CHARACTERS),
-        year(2017, Integer.MAX_VALUE, PERMITTED_SPECIAL_CHARACTERS),
+        year(2017, 2100, PERMITTED_SPECIAL_CHARACTERS),
         ;
 
         public final int minimum;

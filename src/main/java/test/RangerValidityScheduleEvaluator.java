@@ -81,7 +81,7 @@ public class RangerValidityScheduleEvaluator {
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("End-of-Interval:[" + endOfInterval.getTime() + "]");
                     }
-                    ret = endOfInterval.after(now);
+                    ret = startOfInterval.before(now) && endOfInterval.after(now);
                 }
 
             } else {
@@ -172,6 +172,25 @@ public class RangerValidityScheduleEvaluator {
             input.setBorrow(closestMinute.borrow);
             ValueWithBorrow closestHour = getPastFieldValueWithBorrow(RangerValiditySchedule.ScheduleFieldSpec.hour, hours, input);
 
+            Calendar dayOfMonthCalendar = getClosestDayOfMonth(current, closestMinute, closestHour);
+
+            Calendar dayOfWeekCalendar = getClosestDayOfWeek(current, closestMinute, closestHour);
+
+            ret = getEarlierCalendar(dayOfMonthCalendar, dayOfWeekCalendar);
+
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("ClosestPastEpoch:[" + (ret != null ? ret.getTime() : ret) + "]");
+            }
+
+        } catch (Exception e) {
+            LOG.error("Could not find ClosestPastEpoch, Exception=", e);
+        }
+        return ret;
+    }
+
+    private Calendar getClosestDayOfMonth(Calendar current, ValueWithBorrow closestMinute, ValueWithBorrow closestHour) throws Exception {
+        Calendar ret = null;
+        if (StringUtils.isNotBlank(validitySchedule.getDayOfMonth())) {
             int initialDayOfMonth = current.get(Calendar.DAY_OF_MONTH);
 
             int currentDayOfMonth = initialDayOfMonth, currentMonth = current.get(Calendar.MONTH), currentYear = current.get(Calendar.YEAR);
@@ -203,7 +222,7 @@ public class RangerValidityScheduleEvaluator {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("currentDayOfMonth:[" + currentDayOfMonth + "], maximumDaysInPreviourMonth:[" + maximumDaysInPreviousMonth + "]");
             }
-
+            ValueWithBorrow input = new ValueWithBorrow();
             input.setValue(currentDayOfMonth);
             input.setBorrow(false);
             ValueWithBorrow closestDayOfMonth = null;
@@ -229,58 +248,66 @@ public class RangerValidityScheduleEvaluator {
             } while (closestDayOfMonth == null);
 
             // Build calendar for dayOfMonth
-            Calendar dayOfMonthCalendar = new GregorianCalendar();
-            dayOfMonthCalendar.set(Calendar.DAY_OF_MONTH, closestDayOfMonth.value);
-            dayOfMonthCalendar.set(Calendar.HOUR_OF_DAY, closestHour.value);
-            dayOfMonthCalendar.set(Calendar.MINUTE, closestMinute.value);
+            ret = new GregorianCalendar();
+            ret.set(Calendar.DAY_OF_MONTH, closestDayOfMonth.value);
+            ret.set(Calendar.HOUR_OF_DAY, closestHour.value);
+            ret.set(Calendar.MINUTE, closestMinute.value);
 
-            dayOfMonthCalendar.set(Calendar.YEAR, currentYear);
+            ret.set(Calendar.YEAR, currentYear);
 
             if (closestDayOfMonth.borrow) {
-                dayOfMonthCalendar.add(Calendar.MONTH, currentMonth - 1);
+                ret.add(Calendar.MONTH, currentMonth - 1);
             } else {
-                dayOfMonthCalendar.set(Calendar.MONTH, currentMonth);
+                ret.set(Calendar.MONTH, currentMonth);
             }
-            dayOfMonthCalendar.getTime(); // For recomputation
+            ret.getTime(); // For recomputation
 
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Best guess using DAY_OF_MONTH:[" + dayOfMonthCalendar.getTime() + "]");
+                LOG.debug("Best guess using DAY_OF_MONTH:[" + ret.getTime() + "]");
             }
+        }
+        return ret;
+    }
+
+    private Calendar getClosestDayOfWeek(Calendar current, ValueWithBorrow closestMinute, ValueWithBorrow closestHour) throws Exception {
+        Calendar ret = null;
+        if (StringUtils.isNotBlank(validitySchedule.getDayOfWeek())) {
+            ValueWithBorrow input = new ValueWithBorrow();
 
             input.setValue(current.get(Calendar.DAY_OF_WEEK));
             input.setBorrow(closestHour.borrow);
+
+
             ValueWithBorrow closestDayOfWeek = getPastFieldValueWithBorrow(RangerValiditySchedule.ScheduleFieldSpec.dayOfWeek, daysOfWeek, input);
 
-            int daysToGoback = closestHour.borrow ? 0 : 1;
-            daysToGoback += closestDayOfWeek.borrow ?
-                    (RangerValiditySchedule.ScheduleFieldSpec.dayOfWeek.maximum - RangerValiditySchedule.ScheduleFieldSpec.dayOfWeek.minimum - (closestDayOfWeek.value - input.value)) :
-                    (closestDayOfWeek.value - input.value);
+            int daysToGoback = closestHour.borrow ? 1 : 0;
+            int range = RangerValiditySchedule.ScheduleFieldSpec.dayOfWeek.maximum - RangerValiditySchedule.ScheduleFieldSpec.dayOfWeek.minimum + 1;
+
+            if (closestDayOfWeek.borrow) {
+                if (input.value - closestDayOfWeek.value != daysToGoback) {
+                    daysToGoback = range + input.value - closestDayOfWeek.value;
+                }
+            } else {
+                daysToGoback =  input.value - closestDayOfWeek.value;
+            }
 
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Need to go back [" + daysToGoback + "] days to match dayOfWeek");
             }
 
-            Calendar dayOfWeekCalendar = (GregorianCalendar) current.clone();
-            dayOfWeekCalendar.set(Calendar.MINUTE, closestMinute.value);
-            dayOfWeekCalendar.set(Calendar.HOUR_OF_DAY, closestHour.value);
-            dayOfWeekCalendar.add(Calendar.DAY_OF_MONTH, (0 - daysToGoback));
+            ret = (GregorianCalendar) current.clone();
+            ret.set(Calendar.MINUTE, closestMinute.value);
+            ret.set(Calendar.HOUR_OF_DAY, closestHour.value);
+            ret.add(Calendar.DAY_OF_MONTH, (0 - daysToGoback));
 
-            dayOfWeekCalendar.getTime();
-
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Best guess using DAY_OF_WEEK:[" + dayOfWeekCalendar.getTime() + "]");
-            }
-
-            ret = getEarlierCalendar(dayOfMonthCalendar, dayOfWeekCalendar);
+            ret.getTime();
 
             if (LOG.isDebugEnabled()) {
-                LOG.debug("ClosestPastEpoch:[" + ret.getTime() + "]");
+                LOG.debug("Best guess using DAY_OF_WEEK:[" + ret.getTime() + "]");
             }
-
-        } catch (Exception e) {
-            LOG.error("Could not find ClosestPastEpoch, Exception=", e);
         }
         return ret;
+
     }
 
     private int getMaximumValForPreviousMonth(Calendar current) {
@@ -295,38 +322,45 @@ public class RangerValidityScheduleEvaluator {
 
         Calendar withDayOfMonth = fillOutCalendar(dayOfMonthCalendar);
         if (LOG.isDebugEnabled()) {
-            LOG.debug("dayOfMonthCalendar:[" + withDayOfMonth.getTime() + "]");
+            LOG.debug("dayOfMonthCalendar:[" + (withDayOfMonth != null ? withDayOfMonth.getTime() : withDayOfMonth) + "]");
         }
 
         Calendar withDayOfWeek = fillOutCalendar(dayOfWeekCalendar);
         if (LOG.isDebugEnabled()) {
-            LOG.debug("dayOfWeekCalendar:[" + withDayOfWeek.getTime() + "]");
+            LOG.debug("dayOfWeekCalendar:[" + (withDayOfWeek != null ? withDayOfWeek.getTime() : withDayOfWeek) + "]");
         }
 
-        return withDayOfMonth.after(withDayOfWeek) ? withDayOfMonth : withDayOfWeek;
+        if (withDayOfMonth != null && withDayOfWeek != null) {
+            return withDayOfMonth.after(withDayOfWeek) ? withDayOfMonth : withDayOfWeek;
+        } else if (withDayOfMonth == null) {
+            return withDayOfWeek;
+        } else {
+            return withDayOfMonth;
+        }
     }
 
     private Calendar fillOutCalendar(Calendar calendar) throws Exception {
-        Calendar ret;
+        Calendar ret = null;
 
-        ValueWithBorrow input = new ValueWithBorrow(calendar.get(Calendar.MONTH));
-        ValueWithBorrow closestMonth = getPastFieldValueWithBorrow(RangerValiditySchedule.ScheduleFieldSpec.month, months, input);
+        if (calendar != null) {
+            ValueWithBorrow input = new ValueWithBorrow(calendar.get(Calendar.MONTH));
+            ValueWithBorrow closestMonth = getPastFieldValueWithBorrow(RangerValiditySchedule.ScheduleFieldSpec.month, months, input);
 
-        input.setValue(calendar.get(Calendar.YEAR));
-        input.setBorrow(closestMonth.borrow);
-        ValueWithBorrow closestYear = getPastFieldValueWithBorrow(RangerValiditySchedule.ScheduleFieldSpec.year, years, input);
+            input.setValue(calendar.get(Calendar.YEAR));
+            input.setBorrow(closestMonth.borrow);
+            ValueWithBorrow closestYear = getPastFieldValueWithBorrow(RangerValiditySchedule.ScheduleFieldSpec.year, years, input);
 
-        // Build calendar
-        ret = (Calendar)calendar.clone();
-        ret.set(Calendar.YEAR, closestYear.value);
-        ret.set(Calendar.MONTH, closestMonth.value);
-        ret.set(Calendar.SECOND, 0);
+            // Build calendar
+            ret = (Calendar) calendar.clone();
+            ret.set(Calendar.YEAR, closestYear.value);
+            ret.set(Calendar.MONTH, closestMonth.value);
+            ret.set(Calendar.SECOND, 0);
 
-        ret.getTime(); // for recomputation
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Filled-out-Calendar:[" + ret.getTime() + "]");
+            ret.getTime(); // for recomputation
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Filled-out-Calendar:[" + ret.getTime() + "]");
+            }
         }
-
         return ret;
     }
 
@@ -340,10 +374,6 @@ public class RangerValidityScheduleEvaluator {
         boolean borrow = false;
 
         int value = input.value - (input.borrow ? 1 : 0);
-        if (value < fieldSpec.minimum) {
-            value = maximum;
-            borrow = true;
-        }
 
         if (CollectionUtils.isNotEmpty(searchList)) {
             int range = fieldSpec.maximum - fieldSpec.minimum + 1;
@@ -365,6 +395,9 @@ public class RangerValidityScheduleEvaluator {
             // Not found
             throw new Exception("No match found in field:[" + fieldSpec + "] for [input=" + input + "]");
         } else {
+            if (value < fieldSpec.minimum) {
+                value = maximum;
+            }
             ret = new ValueWithBorrow(value, borrow);
         }
         return ret;
