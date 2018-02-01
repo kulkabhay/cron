@@ -1,6 +1,10 @@
 [
   {
     "startTime":"20180112-18:00:00.000",
-    "timeZone":""
+    "timeZone":"US/Hawaii"
+  },
+  {
+    "startTime":"20200228-18:00:00.000",
+    "timeZone":"IST"
   }
 ]
