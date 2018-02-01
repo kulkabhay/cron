@@ -46,12 +46,16 @@ public class AppTest
     }
 
     private static Gson gson;
+    private static Gson gson2;
 
     static {
         GsonBuilder builder = new GsonBuilder().setDateFormat("yyyyMMdd-HH:mm:ss.SSSZ");
         gson = builder
                 .setPrettyPrinting()
                 .create();
+
+        GsonBuilder builder2 = new GsonBuilder().setDateFormat("yyyyMMdd-HH:mm:ss.SSS");
+        gson2 = builder2.setPrettyPrinting().create();
     }
     private List<TestCase> getTestCases(String fileName) {
         if (LOG.isDebugEnabled()) {
@@ -173,6 +177,27 @@ public class AppTest
     public static Test suite()
     {
         return new TestSuite( AppTest.class );
+    }
+
+    public void testTimeZone() {
+        List<TestTimeZone> ret = null;
+        Reader reader = null;
+        URL testCasesURL = null;
+
+        try {
+            testCasesURL = getInputFileURL("/test-time-zone.json");
+            InputStream in = testCasesURL.openStream();
+            reader = new InputStreamReader(in, Charset.forName("UTF-8"));
+            Type listType = new TypeToken<List<TestTimeZone>>() {
+            }.getType();
+            ret = gson2.fromJson(reader, listType);
+        }
+        catch (Exception excp) {
+            LOG.error("Error opening request data stream or loading load request data from file, URL=" + testCasesURL, excp);
+        }
+        for (TestTimeZone zone : ret) {
+            TestTimeZone.getStartTimeInMillis(zone);
+        }
     }
 
     public void testRangerValiditySchedulesForFailures() {
