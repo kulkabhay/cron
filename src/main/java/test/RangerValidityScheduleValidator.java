@@ -30,14 +30,24 @@ public class RangerValidityScheduleValidator {
 
     public RangerValiditySchedule validate(Action action, List<ValidationFailureDetails> validationFailures) {
         RangerValiditySchedule ret = null;
-        validityPeriodEstimator = new RangerValiditySchedule();
 
-        boolean isValid = validateTimeRangeSpec(action, validationFailures);
-        if (isValid) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("validityPeriodEstimator:[" + validityPeriodEstimator + "]");
+        if (validitySchedule != null) {
+            if (validitySchedule.getStartTime() == null || validitySchedule.getEndTime() == null) {
+                validationFailures.add(new ValidationFailureDetails(0, "startTime", "", true, true, false, "empty/null values"));
+            } else {
+
+                validityPeriodEstimator = new RangerValiditySchedule();
+
+                boolean isValid = validateTimeRangeSpec(action, validationFailures);
+                if (isValid) {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("validityPeriodEstimator:[" + validityPeriodEstimator + "]");
+                    }
+                    ret = getNormalizedValiditySchedule();
+                }
             }
-            ret = getNormalizedValiditySchedule();
+        } else {
+            validationFailures.add(new ValidationFailureDetails(0, "", "", true, true, false, "validitySchedule is empty/null"));
         }
         return ret;
     }
@@ -48,15 +58,17 @@ public class RangerValidityScheduleValidator {
         if (ret) {
             ret = false;
 
-            long currentTime = new Date().getTime();
+            //long currentTime = new Date().getTime();
+            /*
             Date getAdjustedStartTime = RangerValiditySchedule.getAdjustedTime(validitySchedule.getStartTime(), validitySchedule.getTimeZone());
             Date getAdjustedEndTime = RangerValiditySchedule.getAdjustedTime(validitySchedule.getEndTime(), validitySchedule.getTimeZone());
+            */
 
-            if (getAdjustedStartTime.getTime() >= getAdjustedEndTime.getTime()) {
+            if (validitySchedule.getStartTime().getTime() >= validitySchedule.getEndTime().getTime()) {
                 validationFailures.add(new ValidationFailureDetails(0, "startTime", "", false, true, false, "startTime later than endTime"));
-            } else if (action == Action.CREATE && getAdjustedEndTime.getTime() <= currentTime) {
+            } /* else if (action == Action.CREATE && getAdjustedEndTime.getTime() <= currentTime) {
                 validationFailures.add(new ValidationFailureDetails(0, "endTime", "", false, true, false, "endTime earlier than current time"));
-            } else {
+            } */ else {
                 if (RangerValiditySchedule.getValidityIntervalInMinutes(validitySchedule) > 0) {
                     ret = validateFieldSpec(RangerValiditySchedule.ScheduleFieldSpec.minute, validationFailures);
                     ret = validateFieldSpec(RangerValiditySchedule.ScheduleFieldSpec.hour, validationFailures) && ret;
