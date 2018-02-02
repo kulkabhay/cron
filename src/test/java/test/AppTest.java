@@ -230,7 +230,7 @@ public class AppTest
 
                 for (RangerValiditySchedule validitySchedule : testCase.validitySchedules) {
                     RangerValidityScheduleValidator validator = new RangerValidityScheduleValidator(validitySchedule);
-                    RangerValiditySchedule validatedSchedule = validator.validate(RangerValidityScheduleValidator.Action.CREATE, validationFailures);
+                    RangerValiditySchedule validatedSchedule = validator.validate(validationFailures);
                     isValid = isValid && validatedSchedule != null;
                     if (isValid) {
                         validatedSchedules.add(validatedSchedule);

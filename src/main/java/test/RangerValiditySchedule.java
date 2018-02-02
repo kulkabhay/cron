@@ -57,11 +57,11 @@ public class RangerValiditySchedule {
                 (validityInterval.getDays()*24 + validityInterval.getHours())*60 + validityInterval.getMinutes() : 0;
     }
 
-    public static Date getAdjustedTime(Date date, String timeZoneId) {
-        Date ret = date;
+    public static long getAdjustedTime(long localTime, String timeZoneId) {
+        long ret = localTime;
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Input:[" + date + ", " + timeZoneId + "]");
+            LOG.debug("Input:[" + new Date(localTime) + ", " + timeZoneId + "]");
         }
         //LOG.info("List of time-zones:[" + Arrays.asList(TimeZone.getAvailableIDs()) +"]");
         if (StringUtils.isNotBlank(timeZoneId)) {
@@ -70,25 +70,23 @@ public class RangerValiditySchedule {
                 LOG.debug("defaultTZ:[" + defaultTZ + "], zoneTZ:[" + targetTZ + "]");
             }
             if (!defaultTZ.equals(targetTZ)) {
-                long timeInMs = ret.getTime();
-                int offsetFromTarget = targetTZ.getOffset(timeInMs);
+                int offsetFromTarget = targetTZ.getOffset(localTime);
 
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Offset of targetTZ :[" + offsetFromTarget + "]");
                 }
 
-                int offsetFromDefault = defaultTZ.getOffset(timeInMs);
+                int offsetFromDefault = defaultTZ.getOffset(localTime);
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Offset of defaultTZ :[" + offsetFromDefault + "]");
                 }
 
-                timeInMs += (offsetFromTarget - offsetFromDefault);
-                ret = new Date(timeInMs);
+                ret += (offsetFromTarget - offsetFromDefault);
             }
         }
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Output:[" + ret + "]");
+            LOG.debug("Output:[" + new Date(ret) + "]");
         }
         return ret;
     }

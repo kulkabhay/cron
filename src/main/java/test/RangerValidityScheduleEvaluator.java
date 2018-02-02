@@ -43,16 +43,19 @@ public class RangerValidityScheduleEvaluator {
         }
     }
 
-    public boolean isApplicable(long accessTime) {
+    public boolean isApplicable(long localAccessTime) {
         boolean ret = false;
         RangerPerfTracer perf = null;
 
         if(RangerPerfTracer.isPerfTraceEnabled(PERF_LOG)) {
-            perf = RangerPerfTracer.getPerfTracer(PERF_LOG, "RangerValidityScheduleEvaluator.isApplicable(accessTime=" + accessTime + ")");
+            perf = RangerPerfTracer.getPerfTracer(PERF_LOG, "RangerValidityScheduleEvaluator.isApplicable(localAccessTime=" + localAccessTime + ")");
         }
 
-        long startTimeInMSs = validitySchedule.getStartTime() == null ? 0 : validitySchedule.getStartTime().getTime();
-        long endTimeInMSs = validitySchedule.getEndTime() == null ? 0 : validitySchedule.getEndTime().getTime();
+        String timeZone = validitySchedule.getTimeZone();
+
+        long accessTime = RangerValiditySchedule.getAdjustedTime(localAccessTime, timeZone);
+        long startTimeInMSs = RangerValiditySchedule.getAdjustedTime(validitySchedule.getStartTime() == null ? 0 : validitySchedule.getStartTime().getTime(), timeZone);
+        long endTimeInMSs = RangerValiditySchedule.getAdjustedTime(validitySchedule.getEndTime() == null ? 0 : validitySchedule.getEndTime().getTime(), timeZone);
 
         if (accessTime >= startTimeInMSs && accessTime <= endTimeInMSs) {
             if (intervalInMinutes > 0) { // recurring schedule

@@ -7,38 +7,31 @@ import org.apache.commons.logging.LogFactory;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 public class RangerValidityScheduleValidator {
 
     private static final Log LOG = LogFactory.getLog(RangerValidityScheduleValidator.class);
 
-    public enum Action {
-        CREATE, UPDATE, DELETE
-    }
-
     final private RangerValiditySchedule validitySchedule;
 
     private RangerValiditySchedule validityPeriodEstimator;
 
-    private static RangerValiditySchedule convertToCalendarStandard(RangerValiditySchedule schedule) {
-        if (schedule != null && StringUtils.isNotBlank(schedule.getMonth())) {
-            // Valid month values in java.util.Date are from 1-12, in java.util.Calendar from 0 to 11
-            int month = Integer.valueOf(schedule.getMonth());
-            schedule.setMonth(String.valueOf(--month));
-        }
-        return schedule;
+    private static List<String> validTimeZoneIds;
+
+    static {
+        validTimeZoneIds = Arrays.asList(TimeZone.getAvailableIDs());
     }
 
     public RangerValidityScheduleValidator(RangerValiditySchedule validitySchedule) {
-        //this.validitySchedule = convertToCalendarStandard(validitySchedule);
         this.validitySchedule = validitySchedule;
     }
 
-    public RangerValiditySchedule validate(Action action, List<ValidationFailureDetails> validationFailures) {
+    public RangerValiditySchedule validate(List<ValidationFailureDetails> validationFailures) {
         RangerValiditySchedule ret = null;
 
         if (validitySchedule != null) {
@@ -48,7 +41,7 @@ public class RangerValidityScheduleValidator {
 
                 validityPeriodEstimator = new RangerValiditySchedule();
 
-                boolean isValid = validateTimeRangeSpec(action, validationFailures);
+                boolean isValid = validateTimeRangeSpec(validationFailures);
                 if (isValid) {
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("validityPeriodEstimator:[" + validityPeriodEstimator + "]");
@@ -62,37 +55,41 @@ public class RangerValidityScheduleValidator {
         return ret;
     }
 
-    private boolean validateTimeRangeSpec(Action action, List<ValidationFailureDetails> validationFailures) {
+    private boolean validateTimeRangeSpec(List<ValidationFailureDetails> validationFailures) {
         boolean ret = validateValidityInterval(validationFailures);
-
-        if (ret) {
+        if (validitySchedule.getStartTime().getTime() >= validitySchedule.getEndTime().getTime()) {
+            validationFailures.add(new ValidationFailureDetails(0, "startTime", "", false, true, false, "startTime later than endTime"));
             ret = false;
-
-            //long currentTime = new Date().getTime();
-            /*
-            Date getAdjustedStartTime = RangerValiditySchedule.getAdjustedTime(validitySchedule.getStartTime(), validitySchedule.getTimeZone());
-            Date getAdjustedEndTime = RangerValiditySchedule.getAdjustedTime(validitySchedule.getEndTime(), validitySchedule.getTimeZone());
-            */
-
-            if (validitySchedule.getStartTime().getTime() >= validitySchedule.getEndTime().getTime()) {
-                validationFailures.add(new ValidationFailureDetails(0, "startTime", "", false, true, false, "startTime later than endTime"));
-            } /* else if (action == Action.CREATE && getAdjustedEndTime.getTime() <= currentTime) {
-                validationFailures.add(new ValidationFailureDetails(0, "endTime", "", false, true, false, "endTime earlier than current time"));
-            } */ else {
-                if (RangerValiditySchedule.getValidityIntervalInMinutes(validitySchedule) > 0) {
-                    ret = validateFieldSpec(RangerValiditySchedule.ScheduleFieldSpec.minute, validationFailures);
-                    ret = validateFieldSpec(RangerValiditySchedule.ScheduleFieldSpec.hour, validationFailures) && ret;
-                    ret = validateFieldSpec(RangerValiditySchedule.ScheduleFieldSpec.dayOfMonth, validationFailures) && ret;
-                    ret = validateFieldSpec(RangerValiditySchedule.ScheduleFieldSpec.dayOfWeek, validationFailures) && ret;
-                    ret = validateFieldSpec(RangerValiditySchedule.ScheduleFieldSpec.month, validationFailures) && ret;
-                    ret = validateFieldSpec(RangerValiditySchedule.ScheduleFieldSpec.year, validationFailures) && ret;
-                    ret = ret && validateIntervalDuration(validationFailures);
-                } else {
-                    ret = true;
-                }
-            }
+        }
+        ret = validateTimeZone(validitySchedule.getTimeZone(), validationFailures) && ret;
+        if (RangerValiditySchedule.getValidityIntervalInMinutes(validitySchedule) > 0) {
+            ret = validateFieldSpec(RangerValiditySchedule.ScheduleFieldSpec.minute, validationFailures) && ret;
+            ret = validateFieldSpec(RangerValiditySchedule.ScheduleFieldSpec.hour, validationFailures) && ret;
+            ret = validateFieldSpec(RangerValiditySchedule.ScheduleFieldSpec.dayOfMonth, validationFailures) && ret;
+            ret = validateFieldSpec(RangerValiditySchedule.ScheduleFieldSpec.dayOfWeek, validationFailures) && ret;
+            ret = validateFieldSpec(RangerValiditySchedule.ScheduleFieldSpec.month, validationFailures) && ret;
+            ret = validateFieldSpec(RangerValiditySchedule.ScheduleFieldSpec.year, validationFailures) && ret;
+            ret = ret && validateIntervalDuration(validationFailures);
         }
 
+        return ret;
+    }
+
+    private boolean validateTimeZone(String timeZone, List<ValidationFailureDetails> validationFailures) {
+        boolean ret = false;
+        if (StringUtils.isNotBlank(timeZone)) {
+            for (String validZone : validTimeZoneIds) {
+                if (StringUtils.equals(timeZone, validZone)) {
+                    ret = true;
+                    break;
+                }
+            }
+        } else {
+            ret = true;
+        }
+        if (!ret) {
+
+        }
         return ret;
     }
 
