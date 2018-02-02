@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.TimeZone;
 
 public class RangerValidityScheduleEvaluator {
 
@@ -51,11 +52,19 @@ public class RangerValidityScheduleEvaluator {
             perf = RangerPerfTracer.getPerfTracer(PERF_LOG, "RangerValidityScheduleEvaluator.isApplicable(localAccessTime=" + localAccessTime + ")");
         }
 
-        String timeZone = validitySchedule.getTimeZone();
+        long accessTime = localAccessTime;
+        long startTimeInMSs = validitySchedule.getStartTime() == null ? 0 : validitySchedule.getStartTime().getTime();
+        long endTimeInMSs = validitySchedule.getEndTime() == null ? 0 : validitySchedule.getEndTime().getTime();
 
-        long accessTime = RangerValiditySchedule.getAdjustedTime(localAccessTime, timeZone);
-        long startTimeInMSs = RangerValiditySchedule.getAdjustedTime(validitySchedule.getStartTime() == null ? 0 : validitySchedule.getStartTime().getTime(), timeZone);
-        long endTimeInMSs = RangerValiditySchedule.getAdjustedTime(validitySchedule.getEndTime() == null ? 0 : validitySchedule.getEndTime().getTime(), timeZone);
+        String timeZoneId = validitySchedule.getTimeZone();
+
+        if (StringUtils.isNotBlank(timeZoneId)) {
+            TimeZone targetTZ = TimeZone.getTimeZone(timeZoneId);
+
+            accessTime = RangerValiditySchedule.getAdjustedTime(localAccessTime, targetTZ);
+            startTimeInMSs = RangerValiditySchedule.getAdjustedTime(validitySchedule.getStartTime() == null ? 0 : validitySchedule.getStartTime().getTime(), targetTZ);
+            endTimeInMSs = RangerValiditySchedule.getAdjustedTime(validitySchedule.getEndTime() == null ? 0 : validitySchedule.getEndTime().getTime(), targetTZ);
+        }
 
         if (accessTime >= startTimeInMSs && accessTime <= endTimeInMSs) {
             if (intervalInMinutes > 0) { // recurring schedule

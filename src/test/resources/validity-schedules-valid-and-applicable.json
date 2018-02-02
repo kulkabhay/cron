@@ -365,6 +365,31 @@
       "isApplicable": false,
       "validationFailureCount": 0
     }
+  },
+  {
+    "name": "Applicable on Feb 29 with a timezone specified in the schedule",
+    "validitySchedules": [
+      {
+        "minute": "0",
+        "hour": "*",
+        "dayOfMonth": "29",
+        "dayOfWeek": "",
+        "month": "2",
+        "year": "2020-2026",
+        "timeZone":"IST",
+        "startTime": "20200101-00:00:00.000",
+        "endTime": "20500203-12:16:40.000",
+        "validityInterval": {
+          "days" : 1
+        }
+      }
+    ],
+    "accessTime": "20200229-23:30:00.000",
+    "result": {
+      "isValid": true,
+      "isApplicable": true,
+      "validationFailureCount": 0
+    }
   }
 
 ]

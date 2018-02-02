@@ -57,37 +57,32 @@ public class RangerValiditySchedule {
                 (validityInterval.getDays()*24 + validityInterval.getHours())*60 + validityInterval.getMinutes() : 0;
     }
 
-    public static long getAdjustedTime(long localTime, String timeZoneId) {
+    public static long getAdjustedTime(long localTime, TimeZone timeZone) {
         long ret = localTime;
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Input:[" + new Date(localTime) + ", " + timeZoneId + "]");
+            LOG.debug("Input:[" + new Date(localTime) + ", target-timezone" + timeZone + "], default-timezone:[" + defaultTZ + "]");
         }
-        //LOG.info("List of time-zones:[" + Arrays.asList(TimeZone.getAvailableIDs()) +"]");
-        if (StringUtils.isNotBlank(timeZoneId)) {
-            TimeZone targetTZ = TimeZone.getTimeZone(timeZoneId);
+
+        if (!defaultTZ.equals(timeZone)) {
+
+            int offsetFromTarget = timeZone.getOffset(localTime);
             if (LOG.isDebugEnabled()) {
-                LOG.debug("defaultTZ:[" + defaultTZ + "], zoneTZ:[" + targetTZ + "]");
+                LOG.debug("Offset of target-timezone :[" + offsetFromTarget + "]");
             }
-            if (!defaultTZ.equals(targetTZ)) {
-                int offsetFromTarget = targetTZ.getOffset(localTime);
 
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Offset of targetTZ :[" + offsetFromTarget + "]");
-                }
-
-                int offsetFromDefault = defaultTZ.getOffset(localTime);
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Offset of defaultTZ :[" + offsetFromDefault + "]");
-                }
-
-                ret += (offsetFromTarget - offsetFromDefault);
+            int offsetFromDefault = defaultTZ.getOffset(localTime);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Offset of default-timezone :[" + offsetFromDefault + "]");
             }
+
+            ret += (offsetFromTarget - offsetFromDefault);
         }
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("Output:[" + new Date(ret) + "]");
         }
+
         return ret;
     }
 
