@@ -256,7 +256,7 @@ public class RangerValidityScheduleEvaluator {
             ret.set(Calendar.YEAR, currentYear);
 
             if (closestDayOfMonth.borrow) {
-                ret.add(Calendar.MONTH, currentMonth - 1);
+                ret.set(Calendar.MONTH, currentMonth - 1);
             } else {
                 ret.set(Calendar.MONTH, currentMonth);
             }
