@@ -79,10 +79,6 @@ public class TestTimeZone {
         if (LOG.isDebugEnabled()) {
             LOG.debug("Output:[" + ret + "]");
         }
-
         return ret;
-
-
     }
-
 }
