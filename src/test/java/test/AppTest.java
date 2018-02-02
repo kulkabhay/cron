@@ -46,17 +46,14 @@ public class AppTest
     }
 
     private static Gson gson;
-    private static Gson gson2;
 
     static {
         GsonBuilder builder = new GsonBuilder().setDateFormat("yyyyMMdd-HH:mm:ss.SSS");
         gson = builder
                 .setPrettyPrinting()
                 .create();
-
-        GsonBuilder builder2 = new GsonBuilder().setDateFormat("yyyyMMdd-HH:mm:ss.SSS");
-        gson2 = builder2.setPrettyPrinting().create();
     }
+
     private List<TestCase> getTestCases(String fileName) {
         if (LOG.isDebugEnabled()) {
             LOG.debug("==> init()" );
@@ -190,7 +187,7 @@ public class AppTest
             reader = new InputStreamReader(in, Charset.forName("UTF-8"));
             Type listType = new TypeToken<List<TestTimeZone>>() {
             }.getType();
-            ret = gson2.fromJson(reader, listType);
+            ret = gson.fromJson(reader, listType);
         }
         catch (Exception excp) {
             LOG.error("Error opening request data stream or loading load request data from file, URL=" + testCasesURL, excp);
