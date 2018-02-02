@@ -43,6 +43,12 @@ public class RangerValiditySchedule {
     static final String PERMITTED_SPECIAL_CHARACTERS_FOR_MINUTES = ",";
     public static final String WILDCARD = "*";
 
+    public static int getValidityIntervalInMinutes(RangerValiditySchedule schedule) {
+        RangerValidityInterval validityInterval = schedule != null ? schedule.getValidityInterval() : null;
+        return validityInterval != null ?
+                (validityInterval.getDays()*24 + validityInterval.getHours())*60 + validityInterval.getMinutes() : 0;
+    }
+
     private String minute;
     private String hour;
     private String dayOfMonth;
@@ -132,12 +138,6 @@ public class RangerValiditySchedule {
             default:
                 return null;
         }
-    }
-
-    public int getValidityIntervalInMinutes() {
-        RangerValidityInterval validityInterval = getValidityInterval();
-        return validityInterval != null ?
-                (validityInterval.getDays()*24 + validityInterval.getHours())*60 + validityInterval.getMinutes() : 0;
     }
 
     public String toString() {

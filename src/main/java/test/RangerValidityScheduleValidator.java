@@ -55,7 +55,7 @@ public class RangerValidityScheduleValidator {
             } else if (validitySchedule.getEndTime() == null || action == Action.CREATE && validitySchedule.getEndTime().getTime() <= currentTime) {
                 validationFailures.add(new ValidationFailureDetails(0, "endTime", "", false, true, false, "endTime earlier than current time"));
             } else {
-                if (validitySchedule.getValidityIntervalInMinutes() > 0) {
+                if (RangerValiditySchedule.getValidityIntervalInMinutes(validitySchedule) > 0) {
                     ret = validateFieldSpec(RangerValiditySchedule.ScheduleFieldSpec.minute, validationFailures);
                     ret = validateFieldSpec(RangerValiditySchedule.ScheduleFieldSpec.hour, validationFailures) && ret;
                     ret = validateFieldSpec(RangerValiditySchedule.ScheduleFieldSpec.dayOfMonth, validationFailures) && ret;
@@ -91,7 +91,7 @@ public class RangerValidityScheduleValidator {
                 ret = false;
             }
         }
-        int validityIntervalInMinutes = validitySchedule.getValidityIntervalInMinutes();
+        int validityIntervalInMinutes = RangerValiditySchedule.getValidityIntervalInMinutes(validitySchedule);
         if (validityIntervalInMinutes > 0) {
             if (StringUtils.isBlank(validitySchedule.getDayOfMonth()) && StringUtils.isBlank(validitySchedule.getDayOfWeek())) {
                 validationFailures.add(new ValidationFailureDetails(0, "validitySchedule", "", false, true, false, "empty dayOfMonth and dayOfWeek"));
@@ -190,9 +190,9 @@ public class RangerValidityScheduleValidator {
                     }
                 }
             }
-            if (validitySchedule.getValidityIntervalInMinutes() > minSchedulingInterval) {
+            if (RangerValiditySchedule.getValidityIntervalInMinutes(validitySchedule) > minSchedulingInterval) {
                 if (LOG.isDebugEnabled()) {
-                    LOG.warn("Specified scheduling interval:" + validitySchedule.getValidityIntervalInMinutes() + " minutes] is more than minimum possible scheduling interval:[" + minSchedulingInterval + " minutes].");
+                    LOG.warn("Specified scheduling interval:" + RangerValiditySchedule.getValidityIntervalInMinutes(validitySchedule) + " minutes] is more than minimum possible scheduling interval:[" + minSchedulingInterval + " minutes].");
                     LOG.warn("This may turn this (expected to be temporary) policy into effectively permanent policy.");
                 }
             }
@@ -352,7 +352,7 @@ public class RangerValidityScheduleValidator {
     private String getNormalizedValue(RangerValiditySchedule.ScheduleFieldSpec field) {
         String ret = null;
 
-        if (validitySchedule.getValidityIntervalInMinutes() > 0) {
+        if (RangerValiditySchedule.getValidityIntervalInMinutes(validitySchedule) > 0) {
             String noWhiteSpace = StringUtils.deleteWhitespace(validitySchedule.getFieldValue(field));
             String[] specs = StringUtils.split(noWhiteSpace, ",");
 

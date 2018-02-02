@@ -32,7 +32,7 @@ public class RangerValidityScheduleEvaluator {
 
         this.validitySchedule = validitySchedule;
 
-        intervalInMinutes = validitySchedule.getValidityIntervalInMinutes();
+        intervalInMinutes = RangerValiditySchedule.getValidityIntervalInMinutes(validitySchedule);
         if (intervalInMinutes > 0) {
             addScheduledTime(validitySchedule.getMinute(), minutes);
             addScheduledTime(validitySchedule.getHour(), hours);
