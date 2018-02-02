@@ -24,7 +24,17 @@ public class RangerValidityScheduleValidator {
 
     private RangerValiditySchedule validityPeriodEstimator;
 
+    private static RangerValiditySchedule convertToCalendarStandard(RangerValiditySchedule schedule) {
+        if (schedule != null && StringUtils.isNotBlank(schedule.getMonth())) {
+            // Valid month values in java.util.Date are from 1-12, in java.util.Calendar from 0 to 11
+            int month = Integer.valueOf(schedule.getMonth());
+            schedule.setMonth(String.valueOf(--month));
+        }
+        return schedule;
+    }
+
     public RangerValidityScheduleValidator(RangerValiditySchedule validitySchedule) {
+        //this.validitySchedule = convertToCalendarStandard(validitySchedule);
         this.validitySchedule = validitySchedule;
     }
 
@@ -137,7 +147,11 @@ public class RangerValidityScheduleValidator {
         if (!ret) {
             validationFailures.add(new ValidationFailureDetails(0, field.toString(), "", false, true, false, "invalid character(s)"));
         } else {
-                ret = validateRanges(field, field.minimum, field.maximum, validationFailures);
+            // Valid month values in java.util.Date are from 1-12, in java.util.Calendar from 0 to 11
+            // Internally we use Calendar values for validation and evaluation
+            int minimum = field == RangerValiditySchedule.ScheduleFieldSpec.month ? field.minimum + 1 : field.minimum;
+            int maximum = field == RangerValiditySchedule.ScheduleFieldSpec.month ? field.maximum + 1 : field.maximum;
+            ret = validateRanges(field, minimum, maximum, validationFailures);
         }
         return ret;
     }

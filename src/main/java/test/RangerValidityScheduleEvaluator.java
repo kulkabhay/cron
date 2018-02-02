@@ -34,12 +34,12 @@ public class RangerValidityScheduleEvaluator {
 
         intervalInMinutes = RangerValiditySchedule.getValidityIntervalInMinutes(validitySchedule);
         if (intervalInMinutes > 0) {
-            addScheduledTime(validitySchedule.getMinute(), minutes);
-            addScheduledTime(validitySchedule.getHour(), hours);
-            addScheduledTime(validitySchedule.getDayOfMonth(), daysOfMonth);
-            addScheduledTime(validitySchedule.getDayOfWeek(), daysOfWeek);
-            addScheduledTime(validitySchedule.getMonth(), months);
-            addScheduledTime(validitySchedule.getYear(), years);
+            addScheduledTime(RangerValiditySchedule.ScheduleFieldSpec.minute, minutes);
+            addScheduledTime(RangerValiditySchedule.ScheduleFieldSpec.hour, hours);
+            addScheduledTime(RangerValiditySchedule.ScheduleFieldSpec.dayOfMonth, daysOfMonth);
+            addScheduledTime(RangerValiditySchedule.ScheduleFieldSpec.dayOfWeek, daysOfWeek);
+            addScheduledTime(RangerValiditySchedule.ScheduleFieldSpec.month, months);
+            addScheduledTime(RangerValiditySchedule.ScheduleFieldSpec.year, years);
         }
     }
 
@@ -92,7 +92,9 @@ public class RangerValidityScheduleEvaluator {
         return ret;
     }
 
-    private void addScheduledTime(String str, List<ScheduledTimeMatcher> list) {
+    private void addScheduledTime(RangerValiditySchedule.ScheduleFieldSpec fieldSpec, List<ScheduledTimeMatcher> list) {
+        String str = validitySchedule.getFieldValue(fieldSpec);
+        final boolean isMonth = fieldSpec == RangerValiditySchedule.ScheduleFieldSpec.month;
         if (StringUtils.isNotBlank(str)) {
             String[] specs = str.split(",");
             for (String spec : specs) {
@@ -103,7 +105,7 @@ public class RangerValidityScheduleEvaluator {
                         list.add(new ScheduledTimeAlwaysMatcher());
                         break;
                     } else {
-                        list.add(new ScheduledTimeExactMatcher(Integer.valueOf(range[0])));
+                        list.add(new ScheduledTimeExactMatcher(Integer.valueOf(range[0]) - (isMonth ? 1 : 0)));
                     }
                 } else {
                     if (StringUtils.equals(range[0], RangerValiditySchedule.WILDCARD) || StringUtils.equals(range[1], RangerValiditySchedule.WILDCARD)) {
@@ -111,7 +113,7 @@ public class RangerValidityScheduleEvaluator {
                         list.add(new ScheduledTimeAlwaysMatcher());
                         break;
                     } else {
-                        list.add(new ScheduledTimeRangeMatcher(Integer.valueOf(range[0]), Integer.valueOf(range[1])));
+                        list.add(new ScheduledTimeRangeMatcher(Integer.valueOf(range[0])- (isMonth ? 1 : 0), Integer.valueOf(range[1])- (isMonth ? 1 : 0)));
                     }
                 }
             }
