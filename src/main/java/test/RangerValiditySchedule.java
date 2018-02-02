@@ -4,12 +4,16 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.codehaus.jackson.annotate.JsonAutoDetect;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonAutoDetect.Visibility;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 import java.util.Date;
+import java.util.TimeZone;
 
 @JsonAutoDetect(fieldVisibility=Visibility.ANY)
 @JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
@@ -18,6 +22,10 @@ import java.util.Date;
 @XmlAccessorType(XmlAccessType.FIELD)
 
 public class RangerValiditySchedule {
+
+    private static final Log LOG = LogFactory.getLog(RangerValiditySchedule.class);
+
+    private static TimeZone defaultTZ = TimeZone.getDefault();
 
     public enum ScheduleFieldSpec {
         minute(0, 59, PERMITTED_SPECIAL_CHARACTERS_FOR_MINUTES),
@@ -49,31 +57,69 @@ public class RangerValiditySchedule {
                 (validityInterval.getDays()*24 + validityInterval.getHours())*60 + validityInterval.getMinutes() : 0;
     }
 
+    public static Date getAdjustedTime(Date date, String timeZoneId) {
+        Date ret = date;
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Input:[" + date + ", " + timeZoneId + "]");
+        }
+        //LOG.info("List of time-zones:[" + Arrays.asList(TimeZone.getAvailableIDs()) +"]");
+        if (StringUtils.isNotBlank(timeZoneId)) {
+            TimeZone targetTZ = TimeZone.getTimeZone(timeZoneId);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("defaultTZ:[" + defaultTZ + "], zoneTZ:[" + targetTZ + "]");
+            }
+            if (!defaultTZ.equals(targetTZ)) {
+                long timeInMs = ret.getTime();
+                int offsetFromTarget = targetTZ.getOffset(timeInMs);
+
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Offset of targetTZ :[" + offsetFromTarget + "]");
+                }
+
+                int offsetFromDefault = defaultTZ.getOffset(timeInMs);
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Offset of defaultTZ :[" + offsetFromDefault + "]");
+                }
+
+                timeInMs += (offsetFromTarget - offsetFromDefault);
+                ret = new Date(timeInMs);
+            }
+        }
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Output:[" + ret + "]");
+        }
+        return ret;
+    }
+
     private String minute;
     private String hour;
     private String dayOfMonth;
     private String dayOfWeek;
     private String month;
     private String year;
+    private String timeZone;
     private Date startTime;
     private Date endTime;
     private RangerValidityInterval validityInterval;
 
     public RangerValiditySchedule(String minute, String hour, String dayOfMonth, String dayOfWeek, String month, String year,
-                                  Date startTime, Date endTime, RangerValidityInterval validityInterval) {
+                                  String timeZone, Date startTime, Date endTime, RangerValidityInterval validityInterval) {
         setMinute(minute);
         setHour(hour);
         setDayOfMonth(dayOfMonth);
         setDayOfWeek(dayOfWeek);
         setMonth(month);
         setYear(year);
+        setTimeZone(timeZone);
         setStartTime(startTime);
         setEndTime(endTime);
         setValidityInterval(validityInterval);
     }
 
     public RangerValiditySchedule() {
-        this(null, null, null, null, null, null, null, null, null);
+        this(null, null, null, null, null, null, null, null, null, null);
     }
 
     public String getMinute() { return minute;}
@@ -82,6 +128,7 @@ public class RangerValiditySchedule {
     public String getDayOfWeek() { return dayOfWeek;}
     public String getMonth() { return month;}
     public String getYear() { return year;}
+    public String getTimeZone() { return timeZone; }
     public Date getStartTime() { return startTime;}
     public Date getEndTime() { return endTime;}
     public RangerValidityInterval getValidityInterval() { return validityInterval;}
@@ -92,6 +139,7 @@ public class RangerValiditySchedule {
     public void setDayOfWeek(String dayOfWeek) { this.dayOfWeek = dayOfWeek;}
     public void setMonth(String month) { this.month = month;}
     public void setYear(String year) { this.year = year;}
+    public void setTimeZone(String timeZone) { this.timeZone = timeZone; }
     public void setStartTime(Date startTime) { this.startTime = startTime;}
     public void setEndTime(Date endTime) { this.endTime = endTime;}
     public void setValidityInterval(RangerValidityInterval validityInterval) { this.validityInterval = validityInterval;}
@@ -149,6 +197,7 @@ public class RangerValiditySchedule {
         sb.append(", dayOfWeek=").append(dayOfWeek);
         sb.append(", month=").append(month);
         sb.append(", year=").append(year);
+        sb.append(", timeZone=").append(timeZone);
         sb.append(", startTime=").append(startTime);
         sb.append(", endTime=").append(endTime);
         sb.append(", validityInterval=").append(validityInterval);

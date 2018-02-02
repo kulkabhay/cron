@@ -49,7 +49,7 @@ public class AppTest
     private static Gson gson2;
 
     static {
-        GsonBuilder builder = new GsonBuilder().setDateFormat("yyyyMMdd-HH:mm:ss.SSSZ");
+        GsonBuilder builder = new GsonBuilder().setDateFormat("yyyyMMdd-HH:mm:ss.SSS");
         gson = builder
                 .setPrettyPrinting()
                 .create();
@@ -200,6 +200,9 @@ public class AppTest
         }
     }
 
+    public void testRangerValiditySchedulesForFailuresNew() {
+        readAndRunTests("/validity-schedules-invalid-new.json");
+    }
     public void testRangerValiditySchedulesForFailures() {
         readAndRunTests("/validity-schedules-invalid.json");
     }

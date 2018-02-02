@@ -49,10 +49,12 @@ public class RangerValidityScheduleValidator {
             ret = false;
 
             long currentTime = new Date().getTime();
+            Date getAdjustedStartTime = RangerValiditySchedule.getAdjustedTime(validitySchedule.getStartTime(), validitySchedule.getTimeZone());
+            Date getAdjustedEndTime = RangerValiditySchedule.getAdjustedTime(validitySchedule.getEndTime(), validitySchedule.getTimeZone());
 
-            if (validitySchedule.getStartTime() == null || validitySchedule.getStartTime().getTime() >= validitySchedule.getEndTime().getTime()) {
+            if (getAdjustedStartTime.getTime() >= getAdjustedEndTime.getTime()) {
                 validationFailures.add(new ValidationFailureDetails(0, "startTime", "", false, true, false, "startTime later than endTime"));
-            } else if (validitySchedule.getEndTime() == null || action == Action.CREATE && validitySchedule.getEndTime().getTime() <= currentTime) {
+            } else if (action == Action.CREATE && getAdjustedEndTime.getTime() <= currentTime) {
                 validationFailures.add(new ValidationFailureDetails(0, "endTime", "", false, true, false, "endTime earlier than current time"));
             } else {
                 if (RangerValiditySchedule.getValidityIntervalInMinutes(validitySchedule) > 0) {
@@ -76,7 +78,7 @@ public class RangerValidityScheduleValidator {
         return new RangerValiditySchedule(getNormalizedValue(RangerValiditySchedule.ScheduleFieldSpec.minute), getNormalizedValue(RangerValiditySchedule.ScheduleFieldSpec.hour),
                 getNormalizedValue(RangerValiditySchedule.ScheduleFieldSpec.dayOfMonth), getNormalizedValue(RangerValiditySchedule.ScheduleFieldSpec.dayOfWeek),
                 getNormalizedValue(RangerValiditySchedule.ScheduleFieldSpec.month), getNormalizedValue(RangerValiditySchedule.ScheduleFieldSpec.year),
-                validitySchedule.getStartTime(), validitySchedule.getEndTime(), validitySchedule.getValidityInterval());
+                validitySchedule.getTimeZone(), validitySchedule.getStartTime(), validitySchedule.getEndTime(), validitySchedule.getValidityInterval());
 
     }
 

@@ -1,0 +1,24 @@
+[
+  {
+    "name": "endTime earlier than now",
+    "validitySchedules": [
+      {
+        "minute": "45, 30, 1, 14",
+        "hour": "*, 0,20, 21",
+        "dayOfMonth": "1-14, 15,31",
+        "dayOfWeek": "0,4, 6",
+        "month": "11, 0-1",
+        "year": "2018",
+        "timeZone":"GMT",
+        "startTime": "20180110-10:32:27.000",
+        "endTime": "20180201-15:30:00.000"
+      }
+    ],
+    "accessTime": "20180012-10:32:27.000",
+    "result": {
+      "isValid": false,
+      "isApplicable": false,
+      "validationFailureCount": 1
+    }
+  }
+]
