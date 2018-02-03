@@ -6,10 +6,13 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import java.io.Serializable;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 
@@ -18,6 +21,8 @@ public class RangerValidityScheduleValidator {
     private static final Log LOG = LogFactory.getLog(RangerValidityScheduleValidator.class);
 
     final private RangerValiditySchedule validitySchedule;
+    private Date startTime;
+    private Date endTime;
 
     private RangerValiditySchedule validityPeriodEstimator;
 
@@ -29,13 +34,22 @@ public class RangerValidityScheduleValidator {
 
     public RangerValidityScheduleValidator(RangerValiditySchedule validitySchedule) {
         this.validitySchedule = validitySchedule;
+        if (validitySchedule != null && validitySchedule.getStartTime() != null && validitySchedule.getEndTime() != null) {
+            try {
+                startTime = new SimpleDateFormat("yyyyMMdd-HH:mm:ss.SSS").parse(validitySchedule.getStartTime());
+                endTime = new SimpleDateFormat("yyyyMMdd-HH:mm:ss.SSS").parse(validitySchedule.getEndTime());
+            } catch (ParseException exception) {
+                LOG.error("Error parsing startTime:[" + validitySchedule.getStartTime() + "], and/or "
+                        + "endTime:[" + validitySchedule.getEndTime() + "]", exception);
+            }
+        }
     }
 
     public RangerValiditySchedule validate(List<ValidationFailureDetails> validationFailures) {
         RangerValiditySchedule ret = null;
 
         if (validitySchedule != null) {
-            if (validitySchedule.getStartTime() == null || validitySchedule.getEndTime() == null) {
+            if (startTime == null || endTime == null) {
                 validationFailures.add(new ValidationFailureDetails(0, "startTime", "", true, true, false, "empty/null values"));
             } else {
 
@@ -57,7 +71,7 @@ public class RangerValidityScheduleValidator {
 
     private boolean validateTimeRangeSpec(List<ValidationFailureDetails> validationFailures) {
         boolean ret = validateValidityInterval(validationFailures);
-        if (validitySchedule.getStartTime().getTime() >= validitySchedule.getEndTime().getTime()) {
+        if (startTime.getTime() >= endTime.getTime()) {
             validationFailures.add(new ValidationFailureDetails(0, "startTime", "", false, true, false, "startTime later than endTime"));
             ret = false;
         }

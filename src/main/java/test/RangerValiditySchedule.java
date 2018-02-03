@@ -4,7 +4,6 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.codehaus.jackson.annotate.JsonAutoDetect;
@@ -93,12 +92,12 @@ public class RangerValiditySchedule {
     private String month;
     private String year;
     private String timeZone;
-    private Date startTime;
-    private Date endTime;
+    private String startTime;
+    private String endTime;
     private RangerValidityInterval validityInterval;
 
     public RangerValiditySchedule(String minute, String hour, String dayOfMonth, String dayOfWeek, String month, String year,
-                                  String timeZone, Date startTime, Date endTime, RangerValidityInterval validityInterval) {
+                                  String timeZone, String startTime, String endTime, RangerValidityInterval validityInterval) {
         setMinute(minute);
         setHour(hour);
         setDayOfMonth(dayOfMonth);
@@ -122,8 +121,8 @@ public class RangerValiditySchedule {
     public String getMonth() { return month;}
     public String getYear() { return year;}
     public String getTimeZone() { return timeZone; }
-    public Date getStartTime() { return startTime;}
-    public Date getEndTime() { return endTime;}
+    public String getStartTime() { return startTime;}
+    public String getEndTime() { return endTime;}
     public RangerValidityInterval getValidityInterval() { return validityInterval;}
 
     public void setMinute(String minute) { this.minute = minute;}
@@ -133,8 +132,8 @@ public class RangerValiditySchedule {
     public void setMonth(String month) { this.month = month;}
     public void setYear(String year) { this.year = year;}
     public void setTimeZone(String timeZone) { this.timeZone = timeZone; }
-    public void setStartTime(Date startTime) { this.startTime = startTime;}
-    public void setEndTime(Date endTime) { this.endTime = endTime;}
+    public void setStartTime(String startTime) { this.startTime = startTime;}
+    public void setEndTime(String endTime) { this.endTime = endTime;}
     public void setValidityInterval(RangerValidityInterval validityInterval) { this.validityInterval = validityInterval;}
 
     public void setFieldValue(ScheduleFieldSpec field, String value) {

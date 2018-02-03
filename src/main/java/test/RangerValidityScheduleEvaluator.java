@@ -6,6 +6,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.ranger.plugin.util.RangerPerfTracer;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -28,10 +30,21 @@ public class RangerValidityScheduleEvaluator {
 
     private final RangerValiditySchedule validitySchedule;
     private final int intervalInMinutes;
+    private Date startTime;
+    private Date endTime;
 
     public RangerValidityScheduleEvaluator(RangerValiditySchedule validitySchedule) {
 
         this.validitySchedule = validitySchedule;
+        if (validitySchedule != null && validitySchedule.getStartTime() != null && validitySchedule.getEndTime() != null) {
+            try {
+                startTime = new SimpleDateFormat("yyyyMMdd-HH:mm:ss.SSS").parse(validitySchedule.getStartTime());
+                endTime = new SimpleDateFormat("yyyyMMdd-HH:mm:ss.SSS").parse(validitySchedule.getEndTime());
+            } catch (ParseException exception) {
+                LOG.error("Error parsing startTime:[" + validitySchedule.getStartTime() + "], and/or "
+                        + "endTime:[" + validitySchedule.getEndTime() + "]", exception);
+            }
+        }
 
         intervalInMinutes = RangerValiditySchedule.getValidityIntervalInMinutes(validitySchedule);
         if (intervalInMinutes > 0) {
@@ -53,8 +66,8 @@ public class RangerValidityScheduleEvaluator {
         }
 
         long accessTime = localAccessTime;
-        long startTimeInMSs = validitySchedule.getStartTime() == null ? 0 : validitySchedule.getStartTime().getTime();
-        long endTimeInMSs = validitySchedule.getEndTime() == null ? 0 : validitySchedule.getEndTime().getTime();
+        long startTimeInMSs = startTime == null ? 0 : startTime.getTime();
+        long endTimeInMSs = endTime == null ? 0 : endTime.getTime();
 
         String timeZoneId = validitySchedule.getTimeZone();
 
@@ -62,8 +75,8 @@ public class RangerValidityScheduleEvaluator {
             TimeZone targetTZ = TimeZone.getTimeZone(timeZoneId);
 
             accessTime = RangerValiditySchedule.getAdjustedTime(localAccessTime, targetTZ);
-            startTimeInMSs = RangerValiditySchedule.getAdjustedTime(validitySchedule.getStartTime() == null ? 0 : validitySchedule.getStartTime().getTime(), targetTZ);
-            endTimeInMSs = RangerValiditySchedule.getAdjustedTime(validitySchedule.getEndTime() == null ? 0 : validitySchedule.getEndTime().getTime(), targetTZ);
+            startTimeInMSs = RangerValiditySchedule.getAdjustedTime(startTime == null ? 0 : startTime.getTime(), targetTZ);
+            endTimeInMSs = RangerValiditySchedule.getAdjustedTime(endTime == null ? 0 : endTime.getTime(), targetTZ);
         }
 
         if (accessTime >= startTimeInMSs && accessTime <= endTimeInMSs) {
