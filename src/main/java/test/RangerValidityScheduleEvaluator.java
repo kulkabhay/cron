@@ -6,6 +6,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.ranger.plugin.util.RangerPerfTracer;
 
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -20,6 +21,13 @@ public class RangerValidityScheduleEvaluator {
 
     private static final Log LOG = LogFactory.getLog(RangerValidityScheduleEvaluator.class);
     private static final Log PERF_LOG = LogFactory.getLog("test.perf.RangerValidityScheduleEvaluator");
+
+    private static final ThreadLocal<DateFormat> DATE_FORMATTER = new ThreadLocal<DateFormat>() {
+        @Override
+        protected DateFormat initialValue() {
+            return new SimpleDateFormat(RangerValiditySchedule.VALIDITY_SCHEDULE_DATE_STRING_SPECIFICATION);
+        }
+    };
 
     private List<ScheduledTimeMatcher> minutes = new ArrayList<>();
     private List<ScheduledTimeMatcher> hours = new ArrayList<>();
@@ -38,8 +46,8 @@ public class RangerValidityScheduleEvaluator {
         this.validitySchedule = validitySchedule;
         if (validitySchedule != null && validitySchedule.getStartTime() != null && validitySchedule.getEndTime() != null) {
             try {
-                startTime = new SimpleDateFormat("yyyyMMdd-HH:mm:ss.SSS").parse(validitySchedule.getStartTime());
-                endTime = new SimpleDateFormat("yyyyMMdd-HH:mm:ss.SSS").parse(validitySchedule.getEndTime());
+                startTime = DATE_FORMATTER.get().parse(validitySchedule.getStartTime());
+                endTime = DATE_FORMATTER.get().parse(validitySchedule.getEndTime());
             } catch (ParseException exception) {
                 LOG.error("Error parsing startTime:[" + validitySchedule.getStartTime() + "], and/or "
                         + "endTime:[" + validitySchedule.getEndTime() + "]", exception);

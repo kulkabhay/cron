@@ -10,11 +10,11 @@
         "month": "11, 0-1",
         "year": "2018",
         "timeZone":"GMT",
-        "startTime": "20180310-10:32:27.000",
-        "endTime": "20180201-15:30:00.000"
+        "startTime": "20180310-10:32",
+        "endTime": "20180201-15:30"
       }
     ],
-    "accessTime": "20180012-10:32:27.000",
+    "accessTime": "20180012-10:32:27.000-0800",
     "result": {
       "isValid": false,
       "isApplicable": false,

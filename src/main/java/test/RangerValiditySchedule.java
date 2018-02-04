@@ -24,6 +24,7 @@ public class RangerValiditySchedule {
 
     private static final Log LOG = LogFactory.getLog(RangerValiditySchedule.class);
 
+    public static final String VALIDITY_SCHEDULE_DATE_STRING_SPECIFICATION = "yyyyMMdd-HH:mm";
     private static TimeZone defaultTZ = TimeZone.getDefault();
 
     public enum ScheduleFieldSpec {

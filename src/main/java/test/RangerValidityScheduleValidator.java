@@ -6,6 +6,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import java.io.Serializable;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -19,6 +20,13 @@ import java.util.TimeZone;
 public class RangerValidityScheduleValidator {
 
     private static final Log LOG = LogFactory.getLog(RangerValidityScheduleValidator.class);
+
+    private static final ThreadLocal<DateFormat> DATE_FORMATTER = new ThreadLocal<DateFormat>() {
+        @Override
+        protected DateFormat initialValue() {
+            return new SimpleDateFormat(RangerValiditySchedule.VALIDITY_SCHEDULE_DATE_STRING_SPECIFICATION);
+        }
+    };
 
     final private RangerValiditySchedule validitySchedule;
     private Date startTime;
@@ -36,8 +44,8 @@ public class RangerValidityScheduleValidator {
         this.validitySchedule = validitySchedule;
         if (validitySchedule != null && validitySchedule.getStartTime() != null && validitySchedule.getEndTime() != null) {
             try {
-                startTime = new SimpleDateFormat("yyyyMMdd-HH:mm:ss.SSS").parse(validitySchedule.getStartTime());
-                endTime = new SimpleDateFormat("yyyyMMdd-HH:mm:ss.SSS").parse(validitySchedule.getEndTime());
+                startTime = DATE_FORMATTER.get().parse(validitySchedule.getStartTime());
+                endTime = DATE_FORMATTER.get().parse(validitySchedule.getEndTime());
             } catch (ParseException exception) {
                 LOG.error("Error parsing startTime:[" + validitySchedule.getStartTime() + "], and/or "
                         + "endTime:[" + validitySchedule.getEndTime() + "]", exception);

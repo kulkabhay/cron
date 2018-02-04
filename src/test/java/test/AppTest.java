@@ -48,7 +48,7 @@ public class AppTest
     private static Gson gson;
 
     static {
-        GsonBuilder builder = new GsonBuilder().setDateFormat("yyyyMMdd-HH:mm:ss.SSS");
+        GsonBuilder builder = new GsonBuilder().setDateFormat("yyyyMMdd-HH:mm:ss.SSSZ");
         gson = builder
                 .setPrettyPrinting()
                 .create();

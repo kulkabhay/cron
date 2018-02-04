@@ -1,18 +1,18 @@
 [
   {
-    "startTime":"20180112-18:00:00.000",
+    "startTime":"20180112-18:00",
     "timeZone":"PST"
   },
   {
-    "startTime":"20180112-18:00:00.000",
+    "startTime":"20180112-18:00",
     "timeZone":"US/Hawaii"
   },
   {
-    "startTime":"20200228-18:00:00.000",
+    "startTime":"20200228-18:00",
     "timeZone":"IST"
   },
   {
-    "startTime":"20200228-18:00:00.000",
+    "startTime":"20200228-18:00",
     "timeZone":"GMT"
   }
 ]
