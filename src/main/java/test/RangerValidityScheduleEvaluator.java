@@ -6,6 +6,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.ranger.plugin.util.RangerPerfTracer;
 
+import javax.annotation.Nonnull;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -29,23 +30,26 @@ public class RangerValidityScheduleEvaluator {
         }
     };
 
-    private final RangerValiditySchedule validitySchedule;
     private Date startTime;
     private Date endTime;
+    private final String timeZone;
     List<RangerRecurrenceEvaluator> recurrenceEvaluators = new ArrayList<>();
 
-    public RangerValidityScheduleEvaluator(RangerValiditySchedule validitySchedule) {
-        this.validitySchedule = validitySchedule;
-        if (validitySchedule != null && validitySchedule.getStartTime() != null && validitySchedule.getEndTime() != null) {
+    public RangerValidityScheduleEvaluator(@Nonnull RangerValiditySchedule validitySchedule) {
+        this(validitySchedule.getStartTime(), validitySchedule.getEndTime(), validitySchedule.getTimeZone(), validitySchedule.getRecurrences());
+    }
+    public RangerValidityScheduleEvaluator(String startTimeStr, String endTimeStr, String timeZone, List<RangerValidityRecurrence> recurrences) {
+        this.timeZone = timeZone;
+        if (startTimeStr != null && endTimeStr != null) {
             try {
-                startTime = DATE_FORMATTER.get().parse(validitySchedule.getStartTime());
-                endTime = DATE_FORMATTER.get().parse(validitySchedule.getEndTime());
+                startTime = DATE_FORMATTER.get().parse(startTimeStr);
+                endTime = DATE_FORMATTER.get().parse(endTimeStr);
             } catch (ParseException exception) {
-                LOG.error("Error parsing startTime:[" + validitySchedule.getStartTime() + "], and/or "
-                        + "endTime:[" + validitySchedule.getEndTime() + "]", exception);
+                LOG.error("Error parsing startTime:[" + startTimeStr + "], and/or "
+                        + "endTime:[" + endTimeStr + "]", exception);
             }
         }
-        for (RangerValidityRecurrence recurrence : validitySchedule.getRecurrences()) {
+        for (RangerValidityRecurrence recurrence : recurrences) {
             recurrenceEvaluators.add(new RangerRecurrenceEvaluator(recurrence));
         }
     }
@@ -62,10 +66,8 @@ public class RangerValidityScheduleEvaluator {
         long startTimeInMSs = startTime == null ? 0 : startTime.getTime();
         long endTimeInMSs = endTime == null ? 0 : endTime.getTime();
 
-        String timeZoneId = validitySchedule.getTimeZone();
-
-        if (StringUtils.isNotBlank(timeZoneId)) {
-            TimeZone targetTZ = TimeZone.getTimeZone(timeZoneId);
+        if (StringUtils.isNotBlank(timeZone)) {
+            TimeZone targetTZ = TimeZone.getTimeZone(timeZone);
 
             accessTime = RangerValiditySchedule.getAdjustedTime(localAccessTime, targetTZ);
             startTimeInMSs = RangerValiditySchedule.getAdjustedTime(startTime == null ? 0 : startTime.getTime(), targetTZ);
@@ -263,7 +265,7 @@ public class RangerValidityScheduleEvaluator {
                 ret = getEarlierCalendar(dayOfMonthCalendar, dayOfWeekCalendar);
 
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("ClosestPastEpoch:[" + (ret != null ? ret.getTime() : ret) + "]");
+                    LOG.debug("ClosestPastEpoch:[" + (ret != null ? ret.getTime() : null) + "]");
                 }
 
             } catch (Exception e) {
@@ -406,12 +408,12 @@ public class RangerValidityScheduleEvaluator {
 
             Calendar withDayOfMonth = fillOutCalendar(dayOfMonthCalendar);
             if (LOG.isDebugEnabled()) {
-                LOG.debug("dayOfMonthCalendar:[" + (withDayOfMonth != null ? withDayOfMonth.getTime() : withDayOfMonth) + "]");
+                LOG.debug("dayOfMonthCalendar:[" + (withDayOfMonth != null ? withDayOfMonth.getTime() : null) + "]");
             }
 
             Calendar withDayOfWeek = fillOutCalendar(dayOfWeekCalendar);
             if (LOG.isDebugEnabled()) {
-                LOG.debug("dayOfWeekCalendar:[" + (withDayOfWeek != null ? withDayOfWeek.getTime() : withDayOfWeek) + "]");
+                LOG.debug("dayOfWeekCalendar:[" + (withDayOfWeek != null ? withDayOfWeek.getTime() : null) + "]");
             }
 
             if (withDayOfMonth != null && withDayOfWeek != null) {
@@ -482,7 +484,7 @@ public class RangerValidityScheduleEvaluator {
                 if (value < fieldSpec.minimum) {
                     value = maximum;
                 }
-                ret = new ValueWithBorrow(value, borrow);
+                ret = new ValueWithBorrow(value, false);
             }
             return ret;
         }
