@@ -17,6 +17,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 
+import org.apache.ranger.plugin.model.validation.ValidationFailureDetails;
+
 public class RangerValidityScheduleValidator {
 
     private static final Log LOG = LogFactory.getLog(RangerValidityScheduleValidator.class);
@@ -132,7 +134,7 @@ public class RangerValidityScheduleValidator {
             ret = true;
         }
         if (!ret) {
-
+            validationFailures.add(new ValidationFailureDetails(0, "timeZone", "", false, true, false, "invalid timeZone"));
         }
         return ret;
     }
