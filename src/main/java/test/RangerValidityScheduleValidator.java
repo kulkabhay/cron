@@ -32,7 +32,8 @@ public class RangerValidityScheduleValidator {
     private Date startTime;
     private Date endTime;
 
-    private RangerValiditySchedule validityPeriodEstimator;
+    private RangerValidityRecurrence.RecurrenceSchedule validityPeriodEstimator;
+    private RangerValiditySchedule normalizedValiditySchedule;
 
     private static List<String> validTimeZoneIds;
 
@@ -61,14 +62,19 @@ public class RangerValidityScheduleValidator {
                 validationFailures.add(new ValidationFailureDetails(0, "startTime", "", true, true, false, "empty/null values"));
             } else {
 
-                validityPeriodEstimator = new RangerValiditySchedule();
+                validityPeriodEstimator = new RangerValidityRecurrence.RecurrenceSchedule();
+                normalizedValiditySchedule = new RangerValiditySchedule();
 
                 boolean isValid = validateTimeRangeSpec(validationFailures);
                 if (isValid) {
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("validityPeriodEstimator:[" + validityPeriodEstimator + "]");
                     }
-                    ret = getNormalizedValiditySchedule();
+                    normalizedValiditySchedule.setStartTime(validitySchedule.getStartTime());
+                    normalizedValiditySchedule.setEndTime(validitySchedule.getEndTime());
+                    normalizedValiditySchedule.setTimeZone(validitySchedule.getTimeZone());
+
+                    ret = normalizedValiditySchedule;
                 }
             }
         } else {
@@ -78,20 +84,36 @@ public class RangerValidityScheduleValidator {
     }
 
     private boolean validateTimeRangeSpec(List<ValidationFailureDetails> validationFailures) {
-        boolean ret = validateValidityInterval(validationFailures);
+        boolean ret;
         if (startTime.getTime() >= endTime.getTime()) {
             validationFailures.add(new ValidationFailureDetails(0, "startTime", "", false, true, false, "startTime later than endTime"));
             ret = false;
+        } else {
+            ret = true;
         }
         ret = validateTimeZone(validitySchedule.getTimeZone(), validationFailures) && ret;
-        if (RangerValiditySchedule.getValidityIntervalInMinutes(validitySchedule) > 0) {
-            ret = validateFieldSpec(RangerValiditySchedule.ScheduleFieldSpec.minute, validationFailures) && ret;
-            ret = validateFieldSpec(RangerValiditySchedule.ScheduleFieldSpec.hour, validationFailures) && ret;
-            ret = validateFieldSpec(RangerValiditySchedule.ScheduleFieldSpec.dayOfMonth, validationFailures) && ret;
-            ret = validateFieldSpec(RangerValiditySchedule.ScheduleFieldSpec.dayOfWeek, validationFailures) && ret;
-            ret = validateFieldSpec(RangerValiditySchedule.ScheduleFieldSpec.month, validationFailures) && ret;
-            ret = validateFieldSpec(RangerValiditySchedule.ScheduleFieldSpec.year, validationFailures) && ret;
-            ret = ret && validateIntervalDuration(validationFailures);
+
+        for (RangerValidityRecurrence recurrence : validitySchedule.getRecurrences()) {
+            ret = validateValidityInterval(recurrence, validationFailures) && ret;
+
+            if (RangerValidityRecurrence.ValidityInterval.getValidityIntervalInMinutes(recurrence.getInterval()) > 0) {
+                ret = validateFieldSpec(recurrence, RangerValidityRecurrence.RecurrenceSchedule.ScheduleFieldSpec.minute, validationFailures) && ret;
+                ret = validateFieldSpec(recurrence, RangerValidityRecurrence.RecurrenceSchedule.ScheduleFieldSpec.hour, validationFailures) && ret;
+                ret = validateFieldSpec(recurrence, RangerValidityRecurrence.RecurrenceSchedule.ScheduleFieldSpec.dayOfMonth, validationFailures) && ret;
+                ret = validateFieldSpec(recurrence, RangerValidityRecurrence.RecurrenceSchedule.ScheduleFieldSpec.dayOfWeek, validationFailures) && ret;
+                ret = validateFieldSpec(recurrence, RangerValidityRecurrence.RecurrenceSchedule.ScheduleFieldSpec.month, validationFailures) && ret;
+                ret = validateFieldSpec(recurrence, RangerValidityRecurrence.RecurrenceSchedule.ScheduleFieldSpec.year, validationFailures) && ret;
+                ret = ret && validateIntervalDuration(recurrence, validationFailures);
+
+                if (ret) {
+                    RangerValidityRecurrence.RecurrenceSchedule schedule = new RangerValidityRecurrence.RecurrenceSchedule(getNormalizedValue(recurrence, RangerValidityRecurrence.RecurrenceSchedule.ScheduleFieldSpec.minute), getNormalizedValue(recurrence, RangerValidityRecurrence.RecurrenceSchedule.ScheduleFieldSpec.hour),
+                            getNormalizedValue(recurrence, RangerValidityRecurrence.RecurrenceSchedule.ScheduleFieldSpec.dayOfMonth), getNormalizedValue(recurrence, RangerValidityRecurrence.RecurrenceSchedule.ScheduleFieldSpec.dayOfWeek),
+                            getNormalizedValue(recurrence, RangerValidityRecurrence.RecurrenceSchedule.ScheduleFieldSpec.month), getNormalizedValue(recurrence, RangerValidityRecurrence.RecurrenceSchedule.ScheduleFieldSpec.year));
+                    RangerValidityRecurrence normalizedRecurrence = new RangerValidityRecurrence(schedule, recurrence.getInterval());
+                    normalizedValiditySchedule.getRecurrences().add(normalizedRecurrence);
+
+                }
+            }
         }
 
         return ret;
@@ -115,17 +137,9 @@ public class RangerValidityScheduleValidator {
         return ret;
     }
 
-    private RangerValiditySchedule getNormalizedValiditySchedule() {
-        return new RangerValiditySchedule(getNormalizedValue(RangerValiditySchedule.ScheduleFieldSpec.minute), getNormalizedValue(RangerValiditySchedule.ScheduleFieldSpec.hour),
-                getNormalizedValue(RangerValiditySchedule.ScheduleFieldSpec.dayOfMonth), getNormalizedValue(RangerValiditySchedule.ScheduleFieldSpec.dayOfWeek),
-                getNormalizedValue(RangerValiditySchedule.ScheduleFieldSpec.month), getNormalizedValue(RangerValiditySchedule.ScheduleFieldSpec.year),
-                validitySchedule.getTimeZone(), validitySchedule.getStartTime(), validitySchedule.getEndTime(), validitySchedule.getValidityInterval());
-
-    }
-
-    private boolean validateValidityInterval(List<ValidationFailureDetails> validationFailures) {
+    private boolean validateValidityInterval(RangerValidityRecurrence recurrence, List<ValidationFailureDetails> validationFailures) {
         boolean ret = true;
-        RangerValiditySchedule.RangerValidityInterval validityInterval = validitySchedule.getValidityInterval();
+        RangerValidityRecurrence.ValidityInterval validityInterval = recurrence.getInterval();
         if (validityInterval != null) {
             if (validityInterval.getDays() < 0
                     || (validityInterval.getHours() < 0 || validityInterval.getHours() > 23)
@@ -134,9 +148,9 @@ public class RangerValidityScheduleValidator {
                 ret = false;
             }
         }
-        int validityIntervalInMinutes = RangerValiditySchedule.getValidityIntervalInMinutes(validitySchedule);
+        int validityIntervalInMinutes = RangerValidityRecurrence.ValidityInterval.getValidityIntervalInMinutes(validityInterval);
         if (validityIntervalInMinutes > 0) {
-            if (StringUtils.isBlank(validitySchedule.getDayOfMonth()) && StringUtils.isBlank(validitySchedule.getDayOfWeek())) {
+            if (StringUtils.isBlank(recurrence.getSchedule().getDayOfMonth()) && StringUtils.isBlank(recurrence.getSchedule().getDayOfWeek())) {
                 validationFailures.add(new ValidationFailureDetails(0, "validitySchedule", "", false, true, false, "empty dayOfMonth and dayOfWeek"));
                 ret = false;
             }
@@ -144,16 +158,16 @@ public class RangerValidityScheduleValidator {
         return ret;
     }
 
-    private boolean validateFieldSpec(RangerValiditySchedule.ScheduleFieldSpec field, List<ValidationFailureDetails> validationFailures) {
+    private boolean validateFieldSpec(RangerValidityRecurrence recurrence, RangerValidityRecurrence.RecurrenceSchedule.ScheduleFieldSpec field, List<ValidationFailureDetails> validationFailures) {
         boolean ret = true;
 
-        String fieldValue = validitySchedule.getFieldValue(field);
+        String fieldValue = recurrence.getSchedule().getFieldValue(field);
         if (StringUtils.isBlank(fieldValue)) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("No value provided for [" + field + "]");
             }
-            if (StringUtils.equals(field.name(), RangerValiditySchedule.ScheduleFieldSpec.dayOfWeek.name())
-                    || StringUtils.equals(field.name(), RangerValiditySchedule.ScheduleFieldSpec.dayOfMonth.name())) {
+            if (StringUtils.equals(field.name(), RangerValidityRecurrence.RecurrenceSchedule.ScheduleFieldSpec.dayOfWeek.name())
+                    || StringUtils.equals(field.name(), RangerValidityRecurrence.RecurrenceSchedule.ScheduleFieldSpec.dayOfMonth.name())) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Allow blank value for dayOfWeek or dayOfMonth here. Check for both being null is done elsewhere.");
                 }
@@ -168,9 +182,9 @@ public class RangerValidityScheduleValidator {
         } else {
             // Valid month values in java.util.Date are from 1-12, in java.util.Calendar from 0 to 11
             // Internally we use Calendar values for validation and evaluation
-            int minimum = field == RangerValiditySchedule.ScheduleFieldSpec.month ? field.minimum + 1 : field.minimum;
-            int maximum = field == RangerValiditySchedule.ScheduleFieldSpec.month ? field.maximum + 1 : field.maximum;
-            ret = validateRanges(field, minimum, maximum, validationFailures);
+            int minimum = field == RangerValidityRecurrence.RecurrenceSchedule.ScheduleFieldSpec.month ? field.minimum + 1 : field.minimum;
+            int maximum = field == RangerValidityRecurrence.RecurrenceSchedule.ScheduleFieldSpec.month ? field.maximum + 1 : field.maximum;
+            ret = validateRanges(recurrence, field, minimum, maximum, validationFailures);
         }
         return ret;
     }
@@ -187,7 +201,7 @@ public class RangerValidityScheduleValidator {
         return ret;
     }
 
-    private boolean validateIntervalDuration(List<ValidationFailureDetails> validationFailures) {
+    private boolean validateIntervalDuration(RangerValidityRecurrence recurrence, List<ValidationFailureDetails> validationFailures) {
         boolean ret = true;
 
         if (!validationFailures.isEmpty() || validityPeriodEstimator == null) {
@@ -195,40 +209,40 @@ public class RangerValidityScheduleValidator {
         } else {
             int minSchedulingInterval = 1; // In minutes
 
-            String minutes = validityPeriodEstimator.getFieldValue(RangerValiditySchedule.ScheduleFieldSpec.minute);
-            if (!StringUtils.equals(minutes, RangerValiditySchedule.WILDCARD)) {
-                minSchedulingInterval = StringUtils.isBlank(minutes) ? RangerValiditySchedule.ScheduleFieldSpec.minute.maximum + 1 : Integer.valueOf(minutes);
+            String minutes = validityPeriodEstimator.getFieldValue(RangerValidityRecurrence.RecurrenceSchedule.ScheduleFieldSpec.minute);
+            if (!StringUtils.equals(minutes, RangerValidityRecurrence.RecurrenceSchedule.WILDCARD)) {
+                minSchedulingInterval = StringUtils.isBlank(minutes) ? RangerValidityRecurrence.RecurrenceSchedule.ScheduleFieldSpec.minute.maximum + 1 : Integer.valueOf(minutes);
 
-                if (minSchedulingInterval == RangerValiditySchedule.ScheduleFieldSpec.minute.maximum + 1) {
-                    String hours = validityPeriodEstimator.getFieldValue(RangerValiditySchedule.ScheduleFieldSpec.hour);
-                    if (!StringUtils.equals(hours, RangerValiditySchedule.WILDCARD)) {
-                        int hour = StringUtils.isBlank(hours) ? RangerValiditySchedule.ScheduleFieldSpec.hour.maximum + 1 :Integer.valueOf(hours);
-                        minSchedulingInterval = hour * (RangerValiditySchedule.ScheduleFieldSpec.minute.maximum+1);
+                if (minSchedulingInterval == RangerValidityRecurrence.RecurrenceSchedule.ScheduleFieldSpec.minute.maximum + 1) {
+                    String hours = validityPeriodEstimator.getFieldValue(RangerValidityRecurrence.RecurrenceSchedule.ScheduleFieldSpec.hour);
+                    if (!StringUtils.equals(hours, RangerValidityRecurrence.RecurrenceSchedule.WILDCARD)) {
+                        int hour = StringUtils.isBlank(hours) ? RangerValidityRecurrence.RecurrenceSchedule.ScheduleFieldSpec.hour.maximum + 1 :Integer.valueOf(hours);
+                        minSchedulingInterval = hour * (RangerValidityRecurrence.RecurrenceSchedule.ScheduleFieldSpec.minute.maximum+1);
 
-                        if (hour == RangerValiditySchedule.ScheduleFieldSpec.hour.maximum + 1) {
-                            String dayOfMonths = validityPeriodEstimator.getFieldValue(RangerValiditySchedule.ScheduleFieldSpec.dayOfMonth);
-                            String dayOfWeeks = validityPeriodEstimator.getFieldValue(RangerValiditySchedule.ScheduleFieldSpec.dayOfWeek);
+                        if (hour == RangerValidityRecurrence.RecurrenceSchedule.ScheduleFieldSpec.hour.maximum + 1) {
+                            String dayOfMonths = validityPeriodEstimator.getFieldValue(RangerValidityRecurrence.RecurrenceSchedule.ScheduleFieldSpec.dayOfMonth);
+                            String dayOfWeeks = validityPeriodEstimator.getFieldValue(RangerValidityRecurrence.RecurrenceSchedule.ScheduleFieldSpec.dayOfWeek);
 
                             int dayOfMonth = 1, dayOfWeek = 1;
-                            if (!StringUtils.equals(dayOfMonths, RangerValiditySchedule.WILDCARD)) {
-                                dayOfMonth = StringUtils.isBlank(dayOfMonths) ? RangerValiditySchedule.ScheduleFieldSpec.dayOfMonth.maximum + 1 : Integer.valueOf(dayOfMonths);
+                            if (!StringUtils.equals(dayOfMonths, RangerValidityRecurrence.RecurrenceSchedule.WILDCARD)) {
+                                dayOfMonth = StringUtils.isBlank(dayOfMonths) ? RangerValidityRecurrence.RecurrenceSchedule.ScheduleFieldSpec.dayOfMonth.maximum + 1 : Integer.valueOf(dayOfMonths);
                             }
-                            if (!StringUtils.equals(dayOfWeeks, RangerValiditySchedule.WILDCARD)) {
-                                dayOfWeek = StringUtils.isBlank(dayOfWeeks) ? RangerValiditySchedule.ScheduleFieldSpec.dayOfWeek.maximum + 1 : Integer.valueOf(dayOfWeeks);
+                            if (!StringUtils.equals(dayOfWeeks, RangerValidityRecurrence.RecurrenceSchedule.WILDCARD)) {
+                                dayOfWeek = StringUtils.isBlank(dayOfWeeks) ? RangerValidityRecurrence.RecurrenceSchedule.ScheduleFieldSpec.dayOfWeek.maximum + 1 : Integer.valueOf(dayOfWeeks);
                             }
-                            if (!StringUtils.equals(dayOfMonths, RangerValiditySchedule.WILDCARD) || !StringUtils.equals(dayOfWeeks, RangerValiditySchedule.WILDCARD)) {
+                            if (!StringUtils.equals(dayOfMonths, RangerValidityRecurrence.RecurrenceSchedule.WILDCARD) || !StringUtils.equals(dayOfWeeks, RangerValidityRecurrence.RecurrenceSchedule.WILDCARD)) {
                                 int minDays = dayOfMonth > dayOfWeek ? dayOfWeek : dayOfMonth;
-                                minSchedulingInterval = minDays*(RangerValiditySchedule.ScheduleFieldSpec.hour.maximum+1)*(RangerValiditySchedule.ScheduleFieldSpec.minute.maximum+1);
+                                minSchedulingInterval = minDays*(RangerValidityRecurrence.RecurrenceSchedule.ScheduleFieldSpec.hour.maximum+1)*(RangerValidityRecurrence.RecurrenceSchedule.ScheduleFieldSpec.minute.maximum+1);
 
-                                if (dayOfMonth == (RangerValiditySchedule.ScheduleFieldSpec.dayOfMonth.maximum+1) && dayOfWeek == (RangerValiditySchedule.ScheduleFieldSpec.dayOfWeek.maximum+1)) {
-                                    String months = validityPeriodEstimator.getFieldValue(RangerValiditySchedule.ScheduleFieldSpec.month);
-                                    if (!StringUtils.equals(months, RangerValiditySchedule.WILDCARD)) {
-                                        int month = StringUtils.isBlank(months) ? RangerValiditySchedule.ScheduleFieldSpec.month.maximum + 1 :Integer.valueOf(months);
-                                        minSchedulingInterval = month * 28 * (RangerValiditySchedule.ScheduleFieldSpec.hour.maximum + 1) * (RangerValiditySchedule.ScheduleFieldSpec.minute.maximum + 1);
+                                if (dayOfMonth == (RangerValidityRecurrence.RecurrenceSchedule.ScheduleFieldSpec.dayOfMonth.maximum+1) && dayOfWeek == (RangerValidityRecurrence.RecurrenceSchedule.ScheduleFieldSpec.dayOfWeek.maximum+1)) {
+                                    String months = validityPeriodEstimator.getFieldValue(RangerValidityRecurrence.RecurrenceSchedule.ScheduleFieldSpec.month);
+                                    if (!StringUtils.equals(months, RangerValidityRecurrence.RecurrenceSchedule.WILDCARD)) {
+                                        int month = StringUtils.isBlank(months) ? RangerValidityRecurrence.RecurrenceSchedule.ScheduleFieldSpec.month.maximum + 1 :Integer.valueOf(months);
+                                        minSchedulingInterval = month * 28 * (RangerValidityRecurrence.RecurrenceSchedule.ScheduleFieldSpec.hour.maximum + 1) * (RangerValidityRecurrence.RecurrenceSchedule.ScheduleFieldSpec.minute.maximum + 1);
 
-                                        if (month == RangerValiditySchedule.ScheduleFieldSpec.month.maximum + 1) {
+                                        if (month == RangerValidityRecurrence.RecurrenceSchedule.ScheduleFieldSpec.month.maximum + 1) {
                                             // Maximum interval is 1 year
-                                            minSchedulingInterval = 365 * (RangerValiditySchedule.ScheduleFieldSpec.hour.maximum + 1) * (RangerValiditySchedule.ScheduleFieldSpec.minute.maximum + 1);
+                                            minSchedulingInterval = 365 * (RangerValidityRecurrence.RecurrenceSchedule.ScheduleFieldSpec.hour.maximum + 1) * (RangerValidityRecurrence.RecurrenceSchedule.ScheduleFieldSpec.minute.maximum + 1);
                                         }
                                     }
                                 }
@@ -237,9 +251,9 @@ public class RangerValidityScheduleValidator {
                     }
                 }
             }
-            if (RangerValiditySchedule.getValidityIntervalInMinutes(validitySchedule) > minSchedulingInterval) {
+            if (RangerValidityRecurrence.ValidityInterval.getValidityIntervalInMinutes(recurrence.getInterval()) > minSchedulingInterval) {
                 if (LOG.isDebugEnabled()) {
-                    LOG.warn("Specified scheduling interval:" + RangerValiditySchedule.getValidityIntervalInMinutes(validitySchedule) + " minutes] is more than minimum possible scheduling interval:[" + minSchedulingInterval + " minutes].");
+                    LOG.warn("Specified scheduling interval:" + RangerValidityRecurrence.ValidityInterval.getValidityIntervalInMinutes(recurrence.getInterval()) + " minutes] is more than minimum possible scheduling interval:[" + minSchedulingInterval + " minutes].");
                     LOG.warn("This may turn this (expected to be temporary) policy into effectively permanent policy.");
                 }
             }
@@ -247,13 +261,13 @@ public class RangerValidityScheduleValidator {
         return ret;
     }
 
-    private boolean validateRanges(RangerValiditySchedule.ScheduleFieldSpec field, int minValidValue, int maxValidValue, List<ValidationFailureDetails> validationFailures) {
+    private boolean validateRanges(RangerValidityRecurrence recurrence, RangerValidityRecurrence.RecurrenceSchedule.ScheduleFieldSpec field, int minValidValue, int maxValidValue, List<ValidationFailureDetails> validationFailures) {
         boolean ret = true;
 
         String value = null;
         String fieldName = field.toString();
 
-        String noWhiteSpace = StringUtils.deleteWhitespace(validitySchedule.getFieldValue(field));
+        String noWhiteSpace = StringUtils.deleteWhitespace(recurrence.getSchedule().getFieldValue(field));
         String[] specs = StringUtils.split(noWhiteSpace, ",");
         class Range {
             private int lower;
@@ -293,30 +307,30 @@ public class RangerValidityScheduleValidator {
                         ret = false;
                     } else if (ranges.length == 2) {
                         int val1 = minValidValue, val2 = maxValidValue;
-                        if (!StringUtils.equals(ranges[0], RangerValiditySchedule.WILDCARD)) {
+                        if (!StringUtils.equals(ranges[0], RangerValidityRecurrence.RecurrenceSchedule.WILDCARD)) {
                             val1 = Integer.valueOf(ranges[0]);
                             if (val1 < minValidValue || val1 > maxValidValue) {
                                 validationFailures.add(new ValidationFailureDetails(0, fieldName, "", false, true, false, "incorrect lower range value"));
                                 ret = false;
                             }
                         } else {
-                            value = RangerValiditySchedule.WILDCARD;
+                            value = RangerValidityRecurrence.RecurrenceSchedule.WILDCARD;
                         }
-                        if (!StringUtils.equals(ranges[1], RangerValiditySchedule.WILDCARD)) {
+                        if (!StringUtils.equals(ranges[1], RangerValidityRecurrence.RecurrenceSchedule.WILDCARD)) {
                             val2 = Integer.valueOf(ranges[1]);
                             if (val1 < minValidValue || val2 > maxValidValue) {
                                 validationFailures.add(new ValidationFailureDetails(0, fieldName, "", false, true, false, "incorrect upper range value"));
                                 ret = false;
                             }
                         } else {
-                            value = RangerValiditySchedule.WILDCARD;
+                            value = RangerValidityRecurrence.RecurrenceSchedule.WILDCARD;
                         }
                         if (ret) {
                             if (val1 >= val2) {
                                 validationFailures.add(new ValidationFailureDetails(0, fieldName, "", false, true, false, "incorrect range"));
                                 ret = false;
                             } else {
-                                value = RangerValiditySchedule.WILDCARD;
+                                value = RangerValidityRecurrence.RecurrenceSchedule.WILDCARD;
                                 for (Range range : rangeOfValues) {
                                     if (range.lower == val1 || range.upper == val2) {
                                         validationFailures.add(new ValidationFailureDetails(0, fieldName, "", false, true, false, "duplicate range"));
@@ -330,18 +344,18 @@ public class RangerValidityScheduleValidator {
                             }
                         }
                     } else if (ranges.length == 1) {
-                        if (!StringUtils.equals(ranges[0], RangerValiditySchedule.WILDCARD)) {
+                        if (!StringUtils.equals(ranges[0], RangerValidityRecurrence.RecurrenceSchedule.WILDCARD)) {
                             int val = Integer.valueOf(ranges[0]);
                             if (val < minValidValue || val > maxValidValue) {
                                 validationFailures.add(new ValidationFailureDetails(0, fieldName, "", false, true, false, "incorrect value"));
                                 ret = false;
                             } else {
-                                if (!StringUtils.equals(value, RangerValiditySchedule.WILDCARD)) {
+                                if (!StringUtils.equals(value, RangerValidityRecurrence.RecurrenceSchedule.WILDCARD)) {
                                     values.add(Integer.valueOf(ranges[0]));
                                 }
                             }
                         } else {
-                            value = RangerValiditySchedule.WILDCARD;
+                            value = RangerValidityRecurrence.RecurrenceSchedule.WILDCARD;
                         }
                     } else {
                         ret = false;
@@ -366,7 +380,7 @@ public class RangerValidityScheduleValidator {
             }
         //}
         if (ret) {
-            if (!StringUtils.equals(value, RangerValiditySchedule.WILDCARD)) {
+            if (!StringUtils.equals(value, RangerValidityRecurrence.RecurrenceSchedule.WILDCARD)) {
 
                 int minDiff = (values.size() <= 1) ?  maxValidValue + 1 : Integer.MAX_VALUE;
 
@@ -396,11 +410,11 @@ public class RangerValidityScheduleValidator {
         return ret;
     }
 
-    private String getNormalizedValue(RangerValiditySchedule.ScheduleFieldSpec field) {
+    private String getNormalizedValue(RangerValidityRecurrence recurrence, RangerValidityRecurrence.RecurrenceSchedule.ScheduleFieldSpec field) {
         String ret = null;
 
-        if (RangerValiditySchedule.getValidityIntervalInMinutes(validitySchedule) > 0) {
-            String noWhiteSpace = StringUtils.deleteWhitespace(validitySchedule.getFieldValue(field));
+        if (RangerValidityRecurrence.ValidityInterval.getValidityIntervalInMinutes(recurrence.getInterval()) > 0) {
+            String noWhiteSpace = StringUtils.deleteWhitespace(recurrence.getSchedule().getFieldValue(field));
             String[] specs = StringUtils.split(noWhiteSpace, ",");
 
             List<String> values = new ArrayList<>();

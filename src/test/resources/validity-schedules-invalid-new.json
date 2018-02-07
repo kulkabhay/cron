@@ -3,22 +3,22 @@
     "name": "endTime earlier than startTime",
     "validitySchedules": [
       {
-        "minute": "45, 30, 1, 14",
-        "hour": "*, 0,20, 21",
-        "dayOfMonth": "1-14, 15,31",
-        "dayOfWeek": "0,4, 6",
-        "month": "11, 0-1",
-        "year": "2018",
-        "timeZone":"GMT",
         "startTime": "20180310-10:32",
-        "endTime": "20180201-15:30"
+        "endTime": "20180201-15:30",
+        "timeZone":"GMT",
+        "recurrences": [
+          {
+            "schedule": {"minute": "45, 30, 1, 14", "hour": "*, 0,20, 21", "dayOfMonth": "1-14, 15,31", "dayOfWeek": "0,4, 6", "month": "11, 0-1", "year": "2018"},
+            "interval": {"minutes": 10 }
+          }
+        ]
       }
     ],
-    "accessTime": "20180012-10:32:27.000-0800",
+    "accessTime": "20180112-10:32:27.000-0800",
     "result": {
       "isValid": false,
       "isApplicable": false,
-      "validationFailureCount": 1
+      "validationFailureCount": 4
     }
   }
 ]

@@ -15,19 +15,14 @@
     "name": "Invalid characters in validity-schedule",
     "validitySchedules": [
       {
-        "minute": "MINUTE",
-        "hour": "HOUR",
-        "dayOfMonth": "DAYOFMONTH",
-        "dayOfWeek": "DAYOFWEEK",
-        "month": "MONTH",
-        "year": "YEAR",
         "startTime": "20180112-14:32",
         "endTime": "20200112-17:19",
-        "validityInterval": {
-          "days": 10,
-          "hours": 5,
-          "minutes": 5
-        }
+        "recurrences": [
+          {
+            "schedule": {"minute": "MINUTE", "hour": "HOUR", "dayOfMonth": "DAYOFMONTH", "dayOfWeek": "DAYOFWEEK", "month": "MONTH", "year": "YEAR"},
+            "interval": {"days": 10, "hours": 5, "minutes": 5}
+          }
+        ]
       }
     ],
     "accessTime": "20180112-14:32:27.000-0800",
@@ -39,21 +34,17 @@
   },
   {
     "name": "Invalid characters in fields in validity-schedule",
+
     "validitySchedules": [
       {
-        "minute": "*",
-        "hour": "@",
-        "dayOfMonth": "!",
-        "dayOfWeek": "#",
-        "month": "%",
-        "year": "^&()",
         "startTime": "20180112-14:32",
         "endTime": "20200123-06:30",
-        "validityInterval": {
-          "days": 1,
-          "hours": 23,
-          "minutes": 59
-        }
+        "recurrences": [
+          {
+            "schedule": {"minute": "*", "hour": "@", "dayOfMonth": "!", "dayOfWeek": "#", "month": "%", "year": "^&()"},
+            "interval": {"minutes": 10  }
+          }
+        ]
       }
     ],
     "accessTime": "20180112-14:32:27.000-0800",
@@ -65,21 +56,18 @@
   },
   {
     "name": "Incorrect validityInterval",
+
     "validitySchedules": [
       {
-        "minute": "10",
-        "hour": "*",
-        "dayOfMonth": "*",
-        "dayOfWeek": "*",
-        "month": "*",
-        "year": "2018",
         "startTime": "20180112-14:32",
         "endTime": "20200123-06:30",
-        "validityInterval": {
-          "days": -1,
-          "hours": 24,
-          "minutes": 60
-        }
+        "timeZone":"",
+        "recurrences": [
+          {
+            "schedule": {"minute": "10", "hour": "*", "dayOfMonth": "*", "dayOfWeek": "*", "month": "*", "year": "2018"},
+            "interval": {"days": -1, "hours": 24, "minutes": 60}
+          }
+        ]
       }
     ],
     "accessTime": "20180112-14:32:27.000-0800",
@@ -91,16 +79,16 @@
   },
   {
     "name": "endTime earlier than startTime",
+
     "validitySchedules": [
       {
-        "minute": "45, 30, 1, 14",
-        "hour": "*, 0,20, 21",
-        "dayOfMonth": "1-14, 15,31",
-        "dayOfWeek": "0,4, 6",
-        "month": "11, 0-1",
-        "year": "2018",
-        "startTime": "20180212-14:32",
-        "endTime": "20180123-06:30"
+        "startTime": "20180112-14:32",
+        "endTime": "20180102-22:30",
+        "recurrences": [
+          {
+            "schedule": {"minute": "45, 30, 1, 14", "hour": "*, 0,20, 21", "dayOfMonth": "1-14, 15,31", "dayOfWeek": "0,4, 6", "month": "11, 0-1", "year": "2018"}
+          }
+        ]
       }
     ],
     "accessTime": "20180112-14:32:27.000-0800",
@@ -112,19 +100,18 @@
   },
   {
     "name": "Overlapping ranges, incorrect range, invalid field value in validity-schedule",
+
     "validitySchedules": [
       {
-        "minute": "1,10,5",
-        "hour": "0-3, 1-4, 9-8,20, 21",
-        "dayOfMonth": "1-14, 15,31",
-        "dayOfWeek": "0,4, 6",
-        "month": "12, 1-2",
-        "year": "2018",
         "startTime": "20180112-14:32",
         "endTime": "20200122-22:30",
-        "validityInterval": {
-          "minutes": 10
-        }
+        "timeZone":"",
+        "recurrences": [
+          {
+            "schedule": {"minute": "1,10,5", "hour": "0-3, 1-4, 9-8,20, 21", "dayOfMonth": "1-14, 15,31", "dayOfWeek": "0,4, 6", "month": "12, 1-2", "year": "2018"},
+            "interval": {"minutes": 10 }
+          }
+        ]
       }
     ],
     "accessTime": "20180112-14:32:27.000-0800",
@@ -136,19 +123,17 @@
   },
   {
     "name": "Both dayOfWeek and dayOfMonth blank",
+
     "validitySchedules": [
       {
-        "minute": "45, 30, 1, 14",
-        "hour": "*, 0,20, 21",
-        "dayOfMonth": "",
-        "dayOfWeek": "",
-        "month": "12, 1-2",
-        "year": "2018",
         "startTime": "20180112-14:32",
         "endTime": "20200123-06:30",
-        "validityInterval": {
-          "minutes": 10
-        }
+        "recurrences": [
+          {
+            "schedule": {"minute": "45, 30, 1, 14", "hour": "*, 0,20, 21", "dayOfMonth": "", "dayOfWeek": "", "month": "12, 1-2", "year": "2018"},
+            "interval": {"minutes": 10 }
+          }
+        ]
       }
     ],
     "accessTime": "20180112-14:32:27.000-0800",

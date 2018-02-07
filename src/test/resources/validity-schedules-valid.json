@@ -3,8 +3,8 @@
     "name": "AccessTime before startTime",
     "validitySchedules": [
       {
-        "startTime":"20180112-14:32",
-        "endTime":"20200112-14:32"
+        "startTime": "20180112-14:32",
+        "endTime": "20200112-14:32"
       }
     ],
     "accessTime": "20170112-14:32:27.000-0800",
@@ -18,8 +18,8 @@
     "name": "AccessTime after endTime",
     "validitySchedules": [
       {
-        "startTime":"20180112-14:32",
-        "endTime":"20180212-14:32"
+        "startTime": "20180112-14:32",
+        "endTime": "20180212-14:32"
       }
     ],
     "accessTime": "20180312-14:32:27.000-0800",
@@ -33,17 +33,23 @@
     "name": "Not applicable for minute field",
     "validitySchedules": [
       {
-        "minute": "59, 15, 30",
-        "hour": "*",
-        "dayOfMonth": "*",
-        "dayOfWeek": "*",
-        "month": "*",
-        "year": "2018-2020",
         "startTime": "20180112-14:32",
         "endTime": "20200112-14:32",
-        "validityInterval": {
-          "minutes": 10
-        }
+        "recurrences": [
+          {
+            "schedule": {
+              "minute": "59, 15, 30",
+              "hour": "*",
+              "dayOfMonth": "*",
+              "dayOfWeek": "*",
+              "month": "*",
+              "year": "2018-2020"
+            },
+            "interval": {
+              "minutes": 10
+            }
+          }
+        ]
       }
     ],
     "accessTime": "20180212-14:26:00.000-0800",
@@ -57,17 +63,23 @@
     "name": "Not applicable as accessTime earlier than startTime",
     "validitySchedules": [
       {
-        "minute":"3",
-        "hour":"10, 21",
-        "dayOfMonth":"*",
-        "dayOfWeek":"*",
-        "month":"*",
-        "year":"2018-2020",
-        "startTime":"20180112-14:32",
-        "endTime":"20200112-14:32",
-        "validityInterval":{
-          "hours":2
-        }
+        "startTime": "20180112-14:32",
+        "endTime": "20200112-14:32",
+        "recurrences": [
+          {
+            "schedule": {
+              "minute": "3",
+              "hour": "10, 21",
+              "dayOfMonth": "*",
+              "dayOfWeek": "*",
+              "month": "*",
+              "year": "2018-2020"
+            },
+            "interval": {
+              "hours": 2
+            }
+          }
+        ]
       }
     ],
     "accessTime": "20170112-14:26:27.000-0800",
@@ -81,17 +93,23 @@
     "name": "dayOfWeek blank and dayOfMonth not blank",
     "validitySchedules": [
       {
-        "minute": "45, 30, 1, 14",
-        "hour": "0,20, 21",
-        "dayOfMonth": "12",
-        "dayOfWeek": "",
-        "month": "12, 1-2",
-        "year": "2018",
         "startTime": "20180112-14:32",
         "endTime": "20200123-06:30",
-        "validityInterval": {
-          "minutes": 10
-        }
+        "recurrences": [
+          {
+            "schedule": {
+              "minute": "45, 30, 1, 14",
+              "hour": "0,20, 21",
+              "dayOfMonth": "12",
+              "dayOfWeek": "",
+              "month": "12, 1-2",
+              "year": "2018"
+            },
+            "interval": {
+              "minutes": 10
+            }
+          }
+        ]
       }
     ],
     "accessTime": "20180112-18:32:27.000-0800",
@@ -105,24 +123,30 @@
     "name": "dayOfWeek non blank and dayOfMonth blank",
     "validitySchedules": [
       {
-        "minute": "45, 30, 1, 14",
-        "hour": "0,20, 21",
-        "dayOfMonth": "",
-        "dayOfWeek": "1",
-        "month": "12, 1-2",
-        "year": "2018",
         "startTime": "20180112-14:32",
         "endTime": "20200123-06:30",
-        "validityInterval": {
-          "minutes": 10
+        "recurrences": [
+          {
+            "schedule": {
+              "minute": "45, 30, 1, 14",
+              "hour": "0,20, 21",
+              "dayOfMonth": "",
+              "dayOfWeek": "1",
+              "month": "12, 1-2",
+              "year": "2018"
+            },
+            "interval": {
+              "minutes": 10
+            }
+          }
+        ]
+      }
+      ],
+        "accessTime": "20180112-18:32:27.000-0800",
+        "result": {
+          "isValid": true,
+          "isApplicable": false,
+          "validationFailureCount": 0
         }
       }
-    ],
-    "accessTime": "20180112-18:32:27.000-0800",
-    "result": {
-      "isValid": true,
-      "isApplicable": false,
-      "validationFailureCount": 0
-    }
-  }
 ]
