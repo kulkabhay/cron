@@ -111,7 +111,7 @@ public class RangerValiditySchedule {
         StringBuilder sb = new StringBuilder();
         sb.append("RangerValiditySchedule={");
 
-        sb.append(", startTime=").append(startTime);
+        sb.append("startTime=").append(startTime);
         sb.append(", endTime=").append(endTime);
         sb.append(", timeZone=").append(timeZone);
 

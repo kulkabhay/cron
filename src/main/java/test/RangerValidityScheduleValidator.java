@@ -213,11 +213,13 @@ public class RangerValidityScheduleValidator {
 
     private boolean validateCharacters(String str, String permittedCharacters) {
         boolean ret = true;
-        char[] chars = str.toCharArray();
-        for (char c : chars) {
-            if (!(Character.isDigit(c) || Character.isWhitespace(c) || StringUtils.contains(permittedCharacters, c))) {
-                ret = false;
-                break;
+        if (StringUtils.isNotBlank(str)) {
+            char[] chars = str.toCharArray();
+            for (char c : chars) {
+                if (!(Character.isDigit(c) || Character.isWhitespace(c) || StringUtils.contains(permittedCharacters, c))) {
+                    ret = false;
+                    break;
+                }
             }
         }
         return ret;
