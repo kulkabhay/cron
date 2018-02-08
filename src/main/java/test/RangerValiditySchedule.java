@@ -25,7 +25,6 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.codehaus.jackson.annotate.JsonAutoDetect;
@@ -87,10 +86,10 @@ public class RangerValiditySchedule {
 
     private List<RangerValidityRecurrence> recurrences;
 
-    public RangerValiditySchedule(String timeZone, String startTime, String endTime, List<RangerValidityRecurrence> recurrences) {
-        setTimeZone(timeZone);
+    public RangerValiditySchedule(String startTime, String endTime, String timeZone, List<RangerValidityRecurrence> recurrences) {
         setStartTime(startTime);
         setEndTime(endTime);
+        setTimeZone(timeZone);
         setRecurrences(recurrences);
     }
 
@@ -112,11 +111,12 @@ public class RangerValiditySchedule {
         StringBuilder sb = new StringBuilder();
         sb.append("RangerValiditySchedule={");
 
-        sb.append(", timeZone=").append(timeZone);
         sb.append(", startTime=").append(startTime);
         sb.append(", endTime=").append(endTime);
+        sb.append(", timeZone=").append(timeZone);
 
         sb.append(", recurrences=").append(Arrays.toString(getRecurrences().toArray()));
+        sb.append("}");
 
         return sb.toString();
     }

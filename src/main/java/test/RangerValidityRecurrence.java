@@ -41,7 +41,7 @@ public class RangerValidityRecurrence {
     @JsonIgnoreProperties(ignoreUnknown=true)
     @XmlRootElement
     @XmlAccessorType(XmlAccessType.FIELD)
-    static class ValidityInterval {
+    public static class ValidityInterval {
         private final int days;
         private final int hours;
         private final int minutes;
@@ -85,7 +85,7 @@ public class RangerValidityRecurrence {
     @JsonIgnoreProperties(ignoreUnknown=true)
     @XmlRootElement
     @XmlAccessorType(XmlAccessType.FIELD)
-    static class RecurrenceSchedule {
+    public static class RecurrenceSchedule {
         static final String PERMITTED_SPECIAL_CHARACTERS = "*,-";
         static final String PERMITTED_SPECIAL_CHARACTERS_FOR_MINUTES = ",";
         public static final String WILDCARD = "*";
